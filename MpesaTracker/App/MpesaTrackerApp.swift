@@ -14,7 +14,7 @@ import SwiftData
 struct MpesaTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            TransactionListView()
+            RootTabView()
         }
         .modelContainer(for: [Transaction.self, StatementImport.self])
     }

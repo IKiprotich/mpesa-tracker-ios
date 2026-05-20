@@ -96,6 +96,7 @@ actor ImportService {
                 continue
             }
             let type = TransactionType.detect(from: row.details.lowercased())
+            let category = Categoriser.categorise(details: row.details, type: type)
             let transaction = Transaction(
                 uniqueKey: row.uniqueKey,
                 receiptNumber: row.receiptNumber,
@@ -104,7 +105,8 @@ actor ImportService {
                 status: row.status,
                 amount: row.amount,
                 balance: row.balance,
-                type: type
+                type: type,
+                category: category
             )
             context.insert(transaction)
             inserted += 1

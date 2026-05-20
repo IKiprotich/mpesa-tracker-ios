@@ -19,6 +19,7 @@ struct TransactionListView: View {
     @State private var searchText = ""
     @State private var filter: TransactionFilter = .all
     @State private var isImporterPresented = false
+    @State private var transactionForCategoryEdit: Transaction?
 
     private var filteredTransactions: [Transaction] {
         transactions
@@ -29,7 +30,7 @@ struct TransactionListView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Pesa Tracker")
+                .navigationTitle("Transactions")
                 .toolbar { toolbarContent }
                 .searchable(text: $searchText, prompt: "Search transactions")
                 .fileImporter(
@@ -40,10 +41,13 @@ struct TransactionListView: View {
                     handleFileImport(result)
                 }
                 .overlay { importOverlay }
-                .alert(alertTitle, isPresented: alertIsPresented, presenting: viewModel.state) { state in
+                .alert(alertTitle, isPresented: alertIsPresented, presenting: viewModel.state) { _ in
                     Button("OK") { viewModel.dismiss() }
                 } message: { state in
                     Text(alertMessage(for: state))
+                }
+                .sheet(item: $transactionForCategoryEdit) { transaction in
+                    CategoryPickerSheet(transaction: transaction)
                 }
         }
     }
@@ -94,6 +98,14 @@ struct TransactionListView: View {
     private var list: some View {
         List(filteredTransactions) { transaction in
             TransactionRowView(transaction: transaction)
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Button {
+                        transactionForCategoryEdit = transaction
+                    } label: {
+                        Label("Change Category", systemImage: "tag")
+                    }
+                }
         }
         .listStyle(.plain)
         .overlay {
@@ -102,8 +114,6 @@ struct TransactionListView: View {
             }
         }
     }
-
-    // MARK: Toolbar
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
@@ -124,8 +134,7 @@ struct TransactionListView: View {
             ZStack {
                 Color.black.opacity(0.3).ignoresSafeArea()
                 VStack(spacing: 16) {
-                    ProgressView()
-                        .controlSize(.large)
+                    ProgressView().controlSize(.large)
                     Text("Parsing \(filename)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -181,7 +190,6 @@ struct TransactionListView: View {
                 await viewModel.importStatement(from: url, context: modelContext)
             }
         case .failure(let error):
-            viewModel.dismiss()
             print("FileImporter error: \(error.localizedDescription)")
         }
     }
@@ -191,6 +199,7 @@ struct TransactionListView: View {
         return transaction.details.lowercased().contains(q)
             || transaction.counterparty.lowercased().contains(q)
             || transaction.receiptNumber.lowercased().contains(q)
+            || transaction.category.displayName.lowercased().contains(q)
     }
 }
 

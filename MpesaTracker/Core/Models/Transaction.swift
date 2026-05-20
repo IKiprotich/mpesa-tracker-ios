@@ -21,6 +21,8 @@ final class Transaction {
     var amount: Double
     var balance: Double
     var rawType: String
+    var rawCategory: String
+    var isCategoryOverridden: Bool
     var importedAt: Date
 
     init(
@@ -32,6 +34,8 @@ final class Transaction {
         amount: Double,
         balance: Double,
         type: TransactionType,
+        category: Category,
+        isCategoryOverridden: Bool = false,
         importedAt: Date = .now
     ) {
         self.uniqueKey = uniqueKey
@@ -42,6 +46,8 @@ final class Transaction {
         self.amount = amount
         self.balance = balance
         self.rawType = type.rawValue
+        self.rawCategory = category.rawValue
+        self.isCategoryOverridden = isCategoryOverridden
         self.importedAt = importedAt
     }
 
@@ -53,6 +59,14 @@ final class Transaction {
 
     var type: TransactionType {
         TransactionType(rawValue: rawType) ?? .other
+    }
+
+    var category: Category {
+        get { Category(rawValue: rawCategory) ?? .other }
+        set {
+            rawCategory = newValue.rawValue
+            isCategoryOverridden = true
+        }
     }
 
     var paidIn: Double  { amount > 0 ? amount : 0 }
@@ -74,29 +88,19 @@ extension Transaction {
             .trimmingCharacters(in: .whitespaces)
 
         switch type {
-        case .transferFee:        
-            return "Transfer Fee"
-        case .paybillCharge:      
-            return "Paybill Fee"
-        case .withdrawalCharge:   
-            return "Withdrawal Fee"
-        case .airtime:            
-            return "Airtime"
-        case .overdraft:          
-            return "Fuliza"
-        case .unitTrust:          
-            return "Ziidi MMF"
-        case .cardPayment:        
-            return extractAfter("Acc.", from: cleaned) ?? "Card Payment"
+        case .transferFee:        return "Transfer Fee"
+        case .paybillCharge:      return "Paybill Fee"
+        case .withdrawalCharge:   return "Withdrawal Fee"
+        case .airtime:            return "Airtime"
+        case .overdraft:          return "Fuliza"
+        case .unitTrust:          return "Ziidi MMF"
+        case .cardPayment:        return extractAfter("Acc.", from: cleaned) ?? "Card Payment"
         default: break
         }
 
-        if let merchant = extractMerchant(from: cleaned) {
-            return merchant }
-        if let name = extractPersonName(from: cleaned)   {
-            return name }
-        if let bank = extractBank(from: cleaned)         {
-            return bank }
+        if let merchant = extractMerchant(from: cleaned) { return merchant }
+        if let name = extractPersonName(from: cleaned)   { return name }
+        if let bank = extractBank(from: cleaned)         { return bank }
 
         return cleaned.prefix(40).description
     }

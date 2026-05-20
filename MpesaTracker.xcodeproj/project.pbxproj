@@ -22,10 +22,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3C8F47702FBB43D5000899D5 /* MpesaTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = MpesaTracker.app; path = "/Users/ian/Documents/MpesaTracker/build/Debug-iphoneos/MpesaTracker.app"; sourceTree = "<absolute>"; };
 		3C8F47902FBB472A000899D5 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		3C8F47922FBB4741000899D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		3CEC04012FBC370D0058EA84 /* MpesaTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MpesaTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CEC04312FBDE5980058EA84 /* MpesaTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MpesaTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -67,6 +67,7 @@
 				3C8F47922FBB4741000899D5 /* README.md */,
 				3CEC04012FBC370D0058EA84 /* MpesaTrackerTests.xctest */,
 				3CEC04022FBC370D0058EA84 /* MpesaTrackerTests */,
+				3CEC04312FBDE5980058EA84 /* MpesaTracker.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,7 +93,7 @@
 			packageProductDependencies = (
 			);
 			productName = MpesaTracker;
-			productReference = 3C8F47702FBB43D5000899D5 /* MpesaTracker.app */;
+			productReference = 3CEC04312FBDE5980058EA84 /* MpesaTracker.app */;
 			productType = "com.apple.product-type.application";
 		};
 		3CEC04002FBC370D0058EA84 /* MpesaTrackerTests */ = {

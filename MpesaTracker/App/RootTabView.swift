@@ -12,14 +12,24 @@ import SwiftUI
 struct RootTabView: View {
     var body: some View {
         TabView {
-            TransactionListView()
+            DashboardView()
                 .tabItem {
-                    Label("Transactions", systemImage: "list.bullet.rectangle")
+                    Label("Dashboard", systemImage: "square.grid.2x2.fill")
                 }
 
-            CategoriesView()
+            TransactionListView()
                 .tabItem {
-                    Label("Categories", systemImage: "chart.pie.fill")
+                    Label("Activity", systemImage: "list.bullet.rectangle.fill")
+                }
+
+            InsightsView()
+                .tabItem {
+                    Label("Insights", systemImage: "chart.pie.fill")
+                }
+
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
     }

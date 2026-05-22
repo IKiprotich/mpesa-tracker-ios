@@ -5,55 +5,89 @@
 //  Created by Ian Kiprotich on 20/05/2026.
 //
 
-import Foundation
+
+import SwiftUI
 import SwiftData
-import Observation
 
-// MARK: - ImportViewModel
-
-@Observable
 @MainActor
+@Observable
 final class ImportViewModel {
 
-    enum State: Equatable {
-        case idle
-        case importing(filename: String)
-        case success(ImportResult)
-        case failure(String)
+    // MARK: - State
 
-        static func == (lhs: State, rhs: State) -> Bool {
-            switch (lhs, rhs) {
-            case (.idle, .idle): return true
-            case let (.importing(a), .importing(b)): return a == b
-            case let (.success(a), .success(b)): return a.filename == b.filename && a.newlyInserted == b.newlyInserted
-            case let (.failure(a), .failure(b)): return a == b
-            default: return false
+    var showingFilePicker = false
+    var isParsing = false
+    var stageLabel: String? = nil
+    var importError: ImportError? = nil
+    var lastImportSucceeded = false
+    var lastImportCount = 0
+
+    // MARK: - Dependencies
+
+    private let importService: ImportService
+
+    // MARK: - Init
+
+    init(importService: ImportService = ImportService()) {
+        self.importService = importService
+    }
+
+    // MARK: - Public API
+
+    func handlePickedFile(_ result: Result<[URL], Error>, context: ModelContext) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            beginImport(url: url, context: context)
+        case .failure:
+            break
+        }
+    }
+
+    func clearError() {
+        importError = nil
+    }
+
+    // MARK: - Private pipeline
+
+    private func beginImport(url: URL, context: ModelContext) {
+        guard !isParsing else { return }
+        isParsing = true
+        lastImportSucceeded = false
+        stageLabel = "Reading your statement…"
+
+        let service = importService
+
+        Task {
+            do {
+                stageLabel = "Extracting transactions…"
+
+                let result = try await Task.detached(priority: .userInitiated) {
+                    try service.importStatement(from: url, into: context)
+                }.value
+
+                stageLabel = "Saving to your library…"
+                try await Task.sleep(for: .milliseconds(400))
+
+                lastImportCount = result.transactionCount
+                lastImportSucceeded = true
+                isParsing = false
+                stageLabel = nil
+
+                HapticFeedback.success()
+
+            } catch let error as ImportError {
+                finishWithError(error)
+            } catch {
+                finishWithError(.parsingFailed(reason: error.localizedDescription))
             }
         }
     }
 
-    private(set) var state: State = .idle
-    private let service: ImportService
-
-    init(service: ImportService = ImportService()) {
-        self.service = service
-    }
-
-    // MARK: Actions
-
-    func importStatement(from url: URL, context: ModelContext) async {
-        state = .importing(filename: url.lastPathComponent)
-        do {
-            let result = try await service.importStatement(from: url, into: context)
-            state = .success(result)
-        } catch let error as ImportError {
-            state = .failure(error.errorDescription ?? "Unknown import error")
-        } catch {
-            state = .failure(error.localizedDescription)
-        }
-    }
-
-    func dismiss() {
-        state = .idle
+    private func finishWithError(_ error: ImportError) {
+        isParsing = false
+        stageLabel = nil
+        importError = error
+        HapticFeedback.error()
     }
 }

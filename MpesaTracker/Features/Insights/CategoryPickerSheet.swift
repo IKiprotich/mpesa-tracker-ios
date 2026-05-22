@@ -8,70 +8,52 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - CategoryPickerSheet
-
 struct CategoryPickerSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
 
-    let transaction: Transaction
-    @State private var selectedCategory: Category
+    // MARK: - Properties
+
+    @Bindable var transaction: Transaction
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var selection: Category
+
+    // MARK: - Init
 
     init(transaction: Transaction) {
         self.transaction = transaction
-        _selectedCategory = State(initialValue: transaction.category)
+        _selection = State(initialValue: transaction.category)
     }
+
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(transaction.counterparty)
-                            .font(.headline)
-                        Text(AmountFormatter.formatSigned(transaction.amount))
-                            .font(.subheadline.monospacedDigit())
-                            .foregroundStyle(transaction.isCredit ? .green : .primary)
-                    }
-                }
+            List(Category.allCases) { category in
+                Button {
+                    selection = category
+                } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: category.icon)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(category.color)
+                            .frame(width: 32, height: 32)
+                            .background(category.color.opacity(0.12), in: Circle())
 
-                Section("Choose Category") {
-                    ForEach(Category.allCases) { category in
-                        Button {
-                            selectedCategory = category
-                        } label: {
-                            HStack(spacing: 12) {
-                                ZStack {
-                                    Circle()
-                                        .fill(category.color.opacity(0.15))
-                                        .frame(width: 32, height: 32)
-                                    Image(systemName: category.icon)
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(category.color)
-                                }
-                                Text(category.displayName)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                if selectedCategory == category {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(.tint)
-                                }
-                            }
+                        Text(category.displayName)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        if selection == category {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tint)
                         }
                     }
                 }
-
-                if transaction.isCategoryOverridden {
-                    Section {
-                        Button("Reset to Automatic", role: .destructive) {
-                            resetToAutomatic()
-                        }
-                    } footer: {
-                        Text("Re-runs the automatic categoriser based on the transaction details.")
-                    }
-                }
+                .buttonStyle(.plain)
             }
-            .navigationTitle("Edit Category")
+            .navigationTitle("Change Category")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -79,27 +61,21 @@ struct CategoryPickerSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        save()
-                        dismiss()
+                        applySelection()
                     }
-                    .disabled(selectedCategory == transaction.category)
+                    .fontWeight(.semibold)
+                    .disabled(selection == transaction.category)
                 }
             }
         }
     }
 
-    // MARK: Actions
+    // MARK: - Private
 
-    private func save() {
-        transaction.category = selectedCategory
-        try? modelContext.save()
-    }
-
-    private func resetToAutomatic() {
-        let auto = Categoriser.categorise(details: transaction.details, type: transaction.type)
-        transaction.rawCategory = auto.rawValue
-        transaction.isCategoryOverridden = false
-        try? modelContext.save()
+    private func applySelection() {
+        transaction.category = selection
+        HapticFeedback.light()
         dismiss()
     }
 }
+

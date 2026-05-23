@@ -26,23 +26,54 @@ enum Categoriser {
 
     private static func categoryFromType(_ type: TransactionType) -> Category? {
         switch type {
-        case .receiveMoney, .businessPayment: return .income
-        case .transferFee, .paybillCharge, .withdrawalCharge: return .fees
-        case .agentWithdrawal: return .withdrawals
-        case .airtime, .bundlePurchase: return .airtime
-        case .overdraft: return .loans
-        case .unitTrust: return .savings
-        case .international: return .transfers
-        default: return nil
+        case .receiveMoney,
+             .businessPayment,
+             .internationalReceive,
+             .agentDeposit,
+             .unitTrustWithdraw,
+             .mShwariWithdraw,
+             .ziidiSell,
+             .ziidiDividend:
+            return .income
+
+        case .transferFee,
+             .paybillCharge,
+             .withdrawalCharge:
+            return .fees
+
+        case .agentWithdrawal:
+            return .withdrawals
+
+        case .airtime,
+             .bundlePurchase:
+            return .airtime
+
+        case .overdraft:
+            return .loans
+
+        case .unitTrustInvest,
+             .mShwariDeposit,
+             .ziidiBuy:
+            return .savings
+
+        case .international,
+             .offnetTransfer:
+            return .transfers
+
+        case .reversal:
+            return .other
+
+        default:
+            return nil
         }
     }
 
     private static func fallback(for type: TransactionType) -> Category {
         switch type {
         case .sendMoney, .smallBusinessPayment: return .transfers
-        case .merchantPayment, .fuliza: return .other
-        case .payBill, .cardPayment: return .utilities
-        default: return .other
+        case .merchantPayment, .fuliza:         return .other
+        case .payBill, .cardPayment:            return .utilities
+        default:                                return .other
         }
     }
 
@@ -85,19 +116,22 @@ enum Categoriser {
         Rule(category: .transport, keywords: [
             "uber", "bolt", "little cab", "swvl",
             "fare", "matatu", "sgr", "rocket",
-            "fuel", "petrol station", "shell", "rubis", "total energies"
+            "fuel", "petrol station", "shell", "rubis", "total energies",
+            "totalenergies"
         ]),
 
         Rule(category: .entertainment, keywords: [
             "netflix", "showmax", "spotify", "apple.com/bill",
             "itunes", "cinema", "imax", "prime video",
-            "youtube premium"
+            "youtube premium", "youtube member", "cinemax",
+            "claude.ai"
         ]),
 
         Rule(category: .food, keywords: [
             "kfc", "java", "artcaffe", "subway", "pizza",
             "chicken inn", "galito", "burger", "cafe",
-            "restaurant", "kitchen", "bakery", "naivas eatery"
+            "restaurant", "kitchen", "bakery", "naivas eatery",
+            "onaires", "branch restaurant", "kenchic"
         ]),
 
         Rule(category: .rent, keywords: [
@@ -112,12 +146,14 @@ enum Categoriser {
 
         Rule(category: .loans, keywords: [
             "loan repayment", "fuliza", "overdraw",
-            "etica capital", "im bank"
+            "etica capital", "im bank", "standard investment bank"
         ]),
 
         Rule(category: .shopping, keywords: [
             "fitzroy", "thomas wambua", "asai mursik",
-            "harrison juma", "pambaza", "the place"
+            "harrison juma", "pambaza", "the place",
+            "lc waikiki", "budget wear", "aliexpress",
+            "namecheap"
         ])
     ]
 }

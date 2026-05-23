@@ -11,9 +11,10 @@ import UniformTypeIdentifiers
 
 struct DashboardView: View {
 
-    // MARK: - Query
+    // MARK: - Environment & Query
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppRouter.self) private var router
 
     @Query(sort: \Transaction.completionTime, order: .reverse)
     private var allTransactions: [Transaction]
@@ -48,6 +49,8 @@ struct DashboardView: View {
     // MARK: - Body
 
     var body: some View {
+        @Bindable var router = router
+
         NavigationStack {
             Group {
                 if allTransactions.isEmpty {
@@ -80,6 +83,11 @@ struct DashboardView: View {
                 Button("OK", role: .cancel) { viewModel.clearError() }
             } message: {
                 Text(viewModel.importError?.message ?? "")
+            }
+            .onChange(of: router.pendingImportFilename) { _, newValue in
+                guard let filename = newValue else { return }
+                viewModel.importFromSharedInbox(filename: filename, context: modelContext)
+                router.pendingImportFilename = nil
             }
         }
     }
@@ -121,5 +129,6 @@ struct DashboardView: View {
 
 #Preview("Empty") {
     DashboardView()
+        .environment(AppRouter())
         .modelContainer(for: Transaction.self, inMemory: true)
 }

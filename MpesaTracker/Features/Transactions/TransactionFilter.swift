@@ -15,21 +15,18 @@ enum TransactionFilter: String, CaseIterable, Identifiable {
     case received
     case paybill
     case airtime
+    case savings
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .all:      
-            return "All"
-        case .sent:     
-            return "Sent"
-        case .received: 
-            return "Received"
-        case .paybill:  
-            return "Paybill"
-        case .airtime:  
-            return "Airtime"
+        case .all:      return "All"
+        case .sent:     return "Sent"
+        case .received: return "Received"
+        case .paybill:  return "Paybill"
+        case .airtime:  return "Airtime"
+        case .savings:  return "Savings"
         }
     }
 
@@ -38,13 +35,42 @@ enum TransactionFilter: String, CaseIterable, Identifiable {
         case .all:
             return true
         case .sent:
-            return [.sendMoney, .smallBusinessPayment, .merchantPayment, .fuliza].contains(transaction.type)
+            return [
+                .sendMoney,
+                .smallBusinessPayment,
+                .merchantPayment,
+                .fuliza,
+                .offnetTransfer,
+                .international
+            ].contains(transaction.type)
         case .received:
-            return [.receiveMoney, .businessPayment].contains(transaction.type)
+            return [
+                .receiveMoney,
+                .businessPayment,
+                .internationalReceive,
+                .agentDeposit
+            ].contains(transaction.type)
         case .paybill:
-            return [.payBill, .paybillCharge, .cardPayment].contains(transaction.type)
+            return [
+                .payBill,
+                .paybillCharge,
+                .cardPayment
+            ].contains(transaction.type)
         case .airtime:
-            return [.airtime, .bundlePurchase].contains(transaction.type)
+            return [
+                .airtime,
+                .bundlePurchase
+            ].contains(transaction.type)
+        case .savings:
+            return [
+                .unitTrustInvest,
+                .unitTrustWithdraw,
+                .mShwariDeposit,
+                .mShwariWithdraw,
+                .ziidiBuy,
+                .ziidiSell,
+                .ziidiDividend
+            ].contains(transaction.type)
         }
     }
 }

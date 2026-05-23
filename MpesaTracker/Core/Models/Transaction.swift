@@ -93,7 +93,8 @@ extension Transaction {
         case .withdrawalCharge:   return "Withdrawal Fee"
         case .airtime:            return "Airtime"
         case .overdraft:          return "Fuliza"
-        case .unitTrust:          return "Ziidi MMF"
+        case .unitTrustInvest:    return "Ziidi MMF"
+        case .unitTrustWithdraw:  return "Ziidi MMF"
         case .cardPayment:        return extractAfter("Acc.", from: cleaned) ?? "Card Payment"
         default: break
         }

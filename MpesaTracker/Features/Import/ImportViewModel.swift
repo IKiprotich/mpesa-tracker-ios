@@ -38,10 +38,19 @@ final class ImportViewModel {
         switch result {
         case .success(let urls):
             guard let url = urls.first else { return }
-            beginImport(url: url, context: context)
+            beginImport(url: url, context: context, cleanupAfter: false)
         case .failure:
             break
         }
+    }
+
+    func importFromSharedInbox(filename: String, context: ModelContext) {
+        guard let url = PendingImportInbox.url(forFilename: filename) else {
+            importError = .invalidFile
+            HapticFeedback.error()
+            return
+        }
+        beginImport(url: url, context: context, cleanupAfter: true)
     }
 
     func clearError() {
@@ -50,7 +59,7 @@ final class ImportViewModel {
 
     // MARK: - Private pipeline
 
-    private func beginImport(url: URL, context: ModelContext) {
+    private func beginImport(url: URL, context: ModelContext, cleanupAfter: Bool) {
         guard !isParsing else { return }
         isParsing = true
         lastImportSucceeded = false
@@ -74,11 +83,21 @@ final class ImportViewModel {
                 isParsing = false
                 stageLabel = nil
 
+                if cleanupAfter {
+                    PendingImportInbox.remove(url)
+                }
+
                 HapticFeedback.success()
 
             } catch let error as ImportError {
+                if cleanupAfter {
+                    PendingImportInbox.remove(url)
+                }
                 finishWithError(error)
             } catch {
+                if cleanupAfter {
+                    PendingImportInbox.remove(url)
+                }
                 finishWithError(.parsingFailed(reason: error.localizedDescription))
             }
         }

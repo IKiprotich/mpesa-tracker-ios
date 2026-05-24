@@ -7,66 +7,62 @@
 
 import SwiftUI
 
-// MARK: - TransactionRowView
-
 struct TransactionRowView: View {
+
     let transaction: Transaction
 
     var body: some View {
         HStack(spacing: 12) {
-            icon
-            VStack(alignment: .leading, spacing: 2) {
+            InitialsAvatar(
+                name: transaction.counterparty,
+                category: transaction.isCredit ? nil : transaction.category,
+                size: 40
+            )
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(transaction.counterparty)
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .semibold))
+                    .tracking(-0.15)
                     .lineLimit(1)
+                    .foregroundStyle(.primary)
+
                 HStack(spacing: 6) {
-                    categoryChip
-                    Text(transaction.completionTime, format: .dateTime.day().month().hour().minute())
-                        .font(.caption)
+                    CategoryChipView(
+                        category: transaction.category,
+                        overrideLabel: transaction.isCredit ? "Received" : nil
+                    )
+
+                    Text(transaction.completionTime, format: .dateTime.hour().minute())
+                        .font(.system(size: 11.5))
                         .foregroundStyle(.secondary)
+
+                    Text("·")
+                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11.5))
+
+                    Text(transaction.type.displayName)
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(AmountFormatter.formatSigned(transaction.amount))
-                    .font(.body.monospacedDigit())
-                    .fontWeight(.semibold)
-                    .foregroundStyle(transaction.isCredit ? .green : .primary)
-                Text("Bal \(AmountFormatter.formatKES(transaction.balance))")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+
+            Spacer(minLength: 0)
+
+            amountColumn
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
     }
 
-    // MARK: Subviews
+    private var amountColumn: some View {
+        let isCredit = transaction.isCredit
+        let prefix   = isCredit ? "+" : "−"
+        let color: Color = isCredit ? DesignTokens.Color.primaryGreen : DesignTokens.Color.expenseRed
 
-    private var icon: some View {
-        ZStack {
-            Circle()
-                .fill(transaction.category.color.opacity(0.15))
-                .frame(width: 38, height: 38)
-            Image(systemName: transaction.category.icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(transaction.category.color)
-        }
-    }
-
-    private var categoryChip: some View {
-        HStack(spacing: 4) {
-            Text(transaction.category.displayName)
-            if transaction.isCategoryOverridden {
-                Image(systemName: "pencil")
-                    .font(.system(size: 8, weight: .bold))
-            }
-        }
-        .font(.caption)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(transaction.category.color.opacity(0.15))
-        .foregroundStyle(transaction.category.color)
-        .clipShape(Capsule())
+        return Text("\(prefix)\(abs(transaction.amount), format: .number.precision(.fractionLength(0)))")
+            .font(.system(size: 15.5, weight: .semibold))
+            .tracking(-0.2)
+            .monospacedDigit()
+            .foregroundStyle(color)
     }
 }

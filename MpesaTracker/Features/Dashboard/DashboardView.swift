@@ -11,63 +11,66 @@ import UniformTypeIdentifiers
 
 struct DashboardView: View {
 
-    // MARK: - Environment & Query
-
     @Environment(\.modelContext) private var modelContext
     @Environment(AppRouter.self) private var router
 
     @Query(sort: \Transaction.completionTime, order: .reverse)
     private var allTransactions: [Transaction]
 
-    // MARK: - State
-
     @State private var viewModel = ImportViewModel()
     @State private var selectedMonth: MonthSelection = .current()
-
-    // MARK: - Computed
 
     private var currentTransactions: [Transaction] {
         AnalyticsService.transactions(allTransactions, in: selectedMonth)
     }
 
-    private var previousTransactions: [Transaction] {
-        AnalyticsService.transactions(allTransactions, in: selectedMonth.previous())
-    }
-
     private var comparison: MonthComparison {
-        AnalyticsService.monthComparison(current: currentTransactions, previous: previousTransactions)
+        AnalyticsService.monthComparison(
+            current: currentTransactions,
+            previous: AnalyticsService.transactions(allTransactions, in: selectedMonth.previous())
+        )
     }
 
-    private var topCategory: CategorySummary? {
-        AnalyticsService.topCategory(in: currentTransactions)
+    private var topCategories: [CategorySummary] {
+        Array(CategorySummaryBuilder.build(from: currentTransactions).prefix(4))
     }
 
     private var biggestTransaction: Transaction? {
         AnalyticsService.biggestTransaction(in: currentTransactions)
     }
 
-    // MARK: - Body
+    private var recentTransactions: [Transaction] {
+        Array(currentTransactions.prefix(5))
+    }
 
     var body: some View {
         @Bindable var router = router
 
         NavigationStack {
-            Group {
-                if allTransactions.isEmpty {
-                    emptyState
-                } else {
-                    dashboardContent
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if allTransactions.isEmpty {
+                        emptyState
+                    } else {
+                        scrollContent
+                    }
+                }
+
+                if !allTransactions.isEmpty {
+                    ImportFAB { viewModel.showingFilePicker = true }
+                        .padding(.trailing, DesignTokens.Spacing.screenHorizontal)
+                        .padding(.bottom, 96)
                 }
             }
-            .navigationTitle("Dashboard")
-            .toolbar { toolbarContent }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .navigationTitle("Pesa Tracker")
+            .navigationBarTitleDisplayMode(.inline)
             .fileImporter(
                 isPresented: $viewModel.showingFilePicker,
                 allowedContentTypes: [UTType.pdf],
-                allowsMultipleSelection: false
-            ) { result in
-                viewModel.handlePickedFile(result, context: modelContext)
-            }
+                allowsMultipleSelection: false,
+                onCompletion: { viewModel.handlePickedFile($0, context: modelContext) }
+            )
             .sheet(isPresented: $viewModel.isParsing) {
                 ImportProgressView(stageLabel: viewModel.stageLabel)
                     .presentationDetents([.height(200)])
@@ -84,25 +87,44 @@ struct DashboardView: View {
             } message: {
                 Text(viewModel.importError?.message ?? "")
             }
-            .onChange(of: router.pendingImportFilename) { _, newValue in
-                guard let filename = newValue else { return }
+            .onChange(of: router.pendingImportFilename) { _, filename in
+                guard let filename else { return }
                 viewModel.importFromSharedInbox(filename: filename, context: modelContext)
                 router.pendingImportFilename = nil
             }
         }
     }
 
-    // MARK: - Sub-views
+    // MARK: - Scroll content
 
-    private var dashboardContent: some View {
+    private var scrollContent: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                MonthSummaryCard(comparison: comparison, month: selectedMonth)
-                RecentTransactionsList(transactions: Array(currentTransactions.prefix(5)))
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sectionGap) {
+                DashboardHeroSection(
+                    comparison: comparison,
+                    transactionCount: currentTransactions.count,
+                    selectedMonth: $selectedMonth
+                )
+
+                DashboardDonutCard(
+                    categories: topCategories,
+                    totalSpend: comparison.currentSpend
+                )
+
+                if let biggest = biggestTransaction {
+                    DashboardBiggestCard(transaction: biggest)
+                }
+
+                DashboardRecentList(transactions: recentTransactions)
+
+                Color.clear.frame(height: 100)
             }
-            .padding()
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+
+    // MARK: - Empty state
 
     private var emptyState: some View {
         EmptyStateView(
@@ -114,15 +136,26 @@ struct DashboardView: View {
             }
         )
     }
+}
 
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                viewModel.showingFilePicker = true
-            } label: {
-                Label("Import Statement", systemImage: "plus.circle.fill")
+// MARK: - ImportFAB
+
+private struct ImportFAB: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Import")
+                    .font(.system(size: 15, weight: .semibold))
             }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(DesignTokens.Color.deepGreen, in: Capsule())
+            .shadow(color: DesignTokens.Color.deepGreen.opacity(0.45), radius: 16, x: 0, y: 8)
         }
     }
 }

@@ -10,17 +10,10 @@ import SwiftData
 
 struct InsightsView: View {
 
-    // MARK: - Query
-
     @Query(sort: \Transaction.completionTime, order: .reverse)
     private var allTransactions: [Transaction]
 
-    // MARK: - State
-
     @State private var selectedMonth: MonthSelection = .current()
-    @State private var selectedCategory: Category? = nil
-
-    // MARK: - Computed
 
     private var monthTransactions: [Transaction] {
         AnalyticsService.transactions(allTransactions, in: selectedMonth)
@@ -34,64 +27,80 @@ struct InsightsView: View {
         AnalyticsService.weeklySpend(for: monthTransactions, in: selectedMonth)
     }
 
-    // MARK: - Body
+    private var comparison: MonthComparison {
+        AnalyticsService.monthComparison(
+            current: monthTransactions,
+            previous: AnalyticsService.transactions(allTransactions, in: selectedMonth.previous())
+        )
+    }
+
+    private var dailyAverage: Double {
+        guard !monthTransactions.isEmpty else { return 0 }
+        let calendar = Calendar.current
+        let daysElapsed = max(1, calendar.component(.day, from: .now))
+        return comparison.currentSpend / Double(daysElapsed)
+    }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                MonthPickerView(selection: $selectedMonth)
+        ZStack {
+            Color(.systemGroupedBackground).ignoresSafeArea()
 
-                Group {
-                    if allTransactions.isEmpty {
-                        emptyState
-                    } else if monthTransactions.isEmpty {
-                        ContentUnavailableView(
-                            "No Data for \(selectedMonth.displayName)",
-                            systemImage: "chart.pie",
-                            description: Text("No transactions found for this month.")
-                        )
-                    } else {
-                        scrollContent
-                    }
-                }
+            if allTransactions.isEmpty {
+                emptyState
+            } else {
+                scrollContent
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Insights")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
-    // MARK: - Sub-views
-
     private var scrollContent: some View {
-        List {
-            Section {
-                WeeklyBarChart(data: weeklyData)
-                    .padding(.vertical, 4)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedMonth)
-            }
+        ScrollView {
+            VStack(spacing: DesignTokens.Spacing.sectionGap) {
+                InsightsMonthPicker(selectedMonth: $selectedMonth)
+                    .padding(.top, 4)
 
-            Section {
-                CategoryDonutChart(summaries: summaries)
-                    .padding(.vertical, 4)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedMonth)
-            }
+                InsightsHeroStat(
+                    comparison: comparison,
+                    dailyAverage: dailyAverage,
+                    month: selectedMonth
+                )
 
-            Section("Breakdown") {
-                ForEach(summaries) { summary in
-                    NavigationLink {
-                        CategoryDetailView(
-                            category: summary.category,
-                            month: selectedMonth,
-                            transactions: monthTransactions.filter { $0.category == summary.category }
-                        )
-                    } label: {
-                        CategorySummaryRow(summary: summary, monthTotal: summaries.reduce(0) { $0 + $1.totalSpent })
-                    }
+                if monthTransactions.isEmpty {
+                    noMonthDataView
+                } else {
+                    InsightsWeeklyBarsCard(data: weeklyData, month: selectedMonth)
+
+                    InsightsCategoryDonut(summaries: summaries, totalSpend: comparison.currentSpend)
+
+                    InsightsCategoryList(
+                        summaries: summaries,
+                        monthTransactions: monthTransactions,
+                        month: selectedMonth
+                    )
                 }
+
+                Color.clear.frame(height: 100)
             }
+            .padding(.horizontal, DesignTokens.Spacing.screenHorizontal)
         }
-        .listStyle(.insetGrouped)
+    }
+
+    private var noMonthDataView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.pie")
+                .font(.system(size: 40, weight: .light))
+                .foregroundStyle(.secondary)
+
+            Text("No data for \(selectedMonth.displayName)")
+                .font(.system(size: 17, weight: .semibold))
+
+            Text("Import a statement that covers this month.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
     }
 
     private var emptyState: some View {
@@ -103,47 +112,141 @@ struct InsightsView: View {
     }
 }
 
-// MARK: - CategorySummaryRow
+// MARK: - InsightsMonthPicker
 
-private struct CategorySummaryRow: View {
-    let summary: CategorySummary
-    let monthTotal: Double
+private struct InsightsMonthPicker: View {
+    @Binding var selectedMonth: MonthSelection
 
-    private var percentage: Double {
-        monthTotal > 0 ? (summary.totalSpent / monthTotal) * 100 : 0
+    private var canGoForward: Bool {
+        let now = MonthSelection.current()
+        return selectedMonth.year < now.year
+            || (selectedMonth.year == now.year && selectedMonth.month < now.month)
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: summary.category.icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(summary.category.color)
-                .frame(width: 36, height: 36)
-                .background(summary.category.color.opacity(0.12), in: Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(summary.category.displayName)
-                    .font(.subheadline.weight(.medium))
-                Text("\(summary.transactionCount) transactions")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        HStack {
+            chevronButton(direction: .left) {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedMonth = selectedMonth.previous()
+                }
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(summary.totalSpent, format: .currency(code: "KES"))
-                    .font(.subheadline.weight(.semibold))
-                Text(String(format: "%.0f%%", percentage))
-                    .font(.caption)
+            VStack(spacing: 2) {
+                Text("Month")
+                    .font(.system(size: 11, weight: .semibold))
+                    .tracking(0.06)
+                    .textCase(.uppercase)
                     .foregroundStyle(.secondary)
+
+                Text(selectedMonth.displayName)
+                    .font(.system(size: 19, weight: .bold))
+                    .tracking(-0.4)
+                    .foregroundStyle(.primary)
+                    .contentTransition(.numericText())
             }
+
+            Spacer()
+
+            chevronButton(direction: .right) {
+                guard canGoForward else { return }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedMonth = selectedMonth.next()
+                }
+            }
+            .opacity(canGoForward ? 1 : 0.3)
+            .disabled(!canGoForward)
         }
-        .padding(.vertical, 4)
     }
+
+    private func chevronButton(direction: ChevronDirection, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: direction == .left ? "chevron.left" : "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 36, height: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: 999, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 999, style: .continuous)
+                                .strokeBorder(Color(.separator).opacity(0.4), lineWidth: 0.5)
+                        )
+                )
+                .foregroundStyle(.primary)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private enum ChevronDirection { case left, right }
 }
 
-#Preview("Empty") {
-    InsightsView()
-        .modelContainer(for: Transaction.self, inMemory: true)
+// MARK: - InsightsHeroStat
+
+private struct InsightsHeroStat: View {
+    let comparison: MonthComparison
+    let dailyAverage: Double
+    let month: MonthSelection
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("Spent in \(month.shortDisplayName)")
+                .font(.system(size: 11.5, weight: .semibold))
+                .tracking(0.06)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 4)
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("KES")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                Text(comparison.currentSpend, format: .number.precision(.fractionLength(0)))
+                    .font(.system(size: 52, weight: .semibold))
+                    .tracking(-1.7)
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                    .contentTransition(.numericText())
+                    .animation(.easeInOut(duration: 0.3), value: comparison.currentSpend)
+            }
+            .padding(.bottom, 12)
+
+            HStack(spacing: 10) {
+                if comparison.hasComparison {
+                    deltaChip
+                }
+
+                HStack(spacing: 4) {
+                    Text("Avg")
+                        .foregroundStyle(.secondary)
+                    Text(dailyAverage, format: .number.precision(.fractionLength(0)))
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                    Text("/ day")
+                        .foregroundStyle(.secondary)
+                }
+                .font(.system(size: 12.5))
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var deltaChip: some View {
+        let isDown = !comparison.isIncrease
+        let arrow  = isDown ? "▼" : "▲"
+        let text   = "\(arrow) \(String(format: "%.0f", abs(comparison.change)))% vs last month"
+
+        return Text(text)
+            .font(.system(size: 12.5, weight: .semibold))
+            .monospacedDigit()
+            .foregroundStyle(isDown ? DesignTokens.Color.deepGreen : DesignTokens.Color.expenseRed)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .fill(isDown ? DesignTokens.Color.softGreenTint : DesignTokens.Color.expenseRed.opacity(0.1))
+            )
+    }
 }

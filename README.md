@@ -6,9 +6,7 @@ Built as a portfolio project to demonstrate real-world iOS engineering with Appl
 
 ## Screenshots
 
-| Dashboard | Activity | Insights | Settings |
-|-----------|----------|----------|----------|
-| <img width="200" src="https://github.com/user-attachments/assets/0d36fafc-3648-40b1-a4d1-01186fd69806" /> | <img width="200" src="https://github.com/user-attachments/assets/c146abd1-d225-4ec5-a7b3-462317bf1e35" /> | <img width="200" src="https://github.com/user-attachments/assets/e8e3659d-9b6b-4dd9-a2ab-fd61929cbdfc" /> | <img width="200" src="https://github.com/user-attachments/assets/12ee8365-11fb-42fb-a183-f3594580df4f" /> |
+COMING SOON
 
 ## The problem
 

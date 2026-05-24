@@ -14,6 +14,7 @@ struct WeeklySpend: Identifiable {
     let label: String
     let amount: Double
     let weekStart: Date
+    let range: String
 }
 
 // MARK: - MonthComparison
@@ -35,36 +36,48 @@ struct MonthComparison {
 
 enum AnalyticsService {
 
+    // MARK: - Weekly spend
     static func weeklySpend(for transactions: [Transaction], in month: MonthSelection) -> [WeeklySpend] {
-        let calendar = Calendar.current
-        let expenses = transactions.filter { $0.isDebit && $0.category.isExpense }
+        let calendar  = Calendar.current
+        let expenses  = transactions.filter { $0.isDebit && $0.category.isExpense }
+        let monthEnd  = month.endDate
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "d"
 
-        let weeksInMonth = calendar.range(of: .weekOfMonth, in: .month, for: month.startDate)
-        let weekCount = weeksInMonth?.count ?? 5
+        var segments: [WeeklySpend] = []
+        var segmentStart = month.startDate
+        var weekIndex    = 1
 
-        return (1...weekCount).compactMap { week -> WeeklySpend? in
-            guard let weekStart = calendar.date(
-                from: DateComponents(
-                    year: month.year,
-                    month: month.month,
-                    weekday: calendar.firstWeekday, weekOfMonth: week
-                )
-            ) else { return nil }
+        while segmentStart <= monthEnd {
+            guard let segmentEnd = calendar.date(byAdding: .day, value: 6, to: segmentStart) else { break }
+            let clampedEnd = min(segmentEnd, monthEnd)
 
-            guard let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) else { return nil }
-            let interval = DateInterval(start: weekStart, end: weekEnd)
+            let interval = DateInterval(start: segmentStart, end: clampedEnd)
+            let total    = expenses
+                .filter { interval.contains($0.completionTime) }
+                .reduce(0.0) { $0 + abs($1.amount) }
 
-            let weekTransactions = expenses.filter { interval.contains($0.completionTime) }
-            let total = weekTransactions.reduce(0.0) { $0 + abs($1.amount) }
+            let startDay = dayFormatter.string(from: segmentStart)
+            let endDay   = dayFormatter.string(from: clampedEnd)
+            let rangeLabel = "\(startDay)–\(endDay)"
 
-            return WeeklySpend(
-                id: week,
-                label: "Wk \(week)",
+            segments.append(WeeklySpend(
+                id: weekIndex,
+                label: "W\(weekIndex)",
                 amount: total,
-                weekStart: weekStart
-            )
+                weekStart: segmentStart,
+                range: rangeLabel
+            ))
+
+            guard let next = calendar.date(byAdding: .day, value: 7, to: segmentStart) else { break }
+            segmentStart = next
+            weekIndex   += 1
         }
+
+        return segments
     }
+
+    // MARK: - Month comparison
 
     static func monthComparison(
         current: [Transaction],
@@ -76,21 +89,26 @@ enum AnalyticsService {
         )
     }
 
+    // MARK: - Biggest transaction
+
     static func biggestTransaction(in transactions: [Transaction]) -> Transaction? {
         transactions
             .filter { $0.isDebit }
             .max { abs($0.amount) < abs($1.amount) }
     }
 
+    // MARK: - Top category
+
     static func topCategory(in transactions: [Transaction]) -> CategorySummary? {
         CategorySummaryBuilder.build(from: transactions).first
     }
+
+    // MARK: - Filter by month
 
     static func transactions(
         _ transactions: [Transaction],
         in month: MonthSelection
     ) -> [Transaction] {
-        let interval = month.dateInterval
-        return transactions.filter { interval.contains($0.completionTime) }
+        transactions.filter { month.dateInterval.contains($0.completionTime) }
     }
 }

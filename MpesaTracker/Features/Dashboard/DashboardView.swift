@@ -31,8 +31,16 @@ struct DashboardView: View {
         )
     }
 
+    private var categorySummaries: [CategorySummary] {
+        CategorySummaryBuilder.build(from: currentTransactions)
+    }
+
     private var topCategories: [CategorySummary] {
-        Array(CategorySummaryBuilder.build(from: currentTransactions).prefix(4))
+        Array(categorySummaries.prefix(4))
+    }
+
+    private var spendingAlert: SpendingAlert? {
+        SpendingAlert.evaluate(from: categorySummaries)
     }
 
     private var biggestTransaction: Transaction? {
@@ -106,6 +114,11 @@ struct DashboardView: View {
                     selectedMonth: $selectedMonth
                 )
 
+                if let alert = spendingAlert {
+                    SpendingAlertBanner(alert: alert)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
                 DashboardDonutCard(
                     categories: topCategories,
                     totalSpend: comparison.currentSpend
@@ -121,6 +134,7 @@ struct DashboardView: View {
             }
             .padding(.top, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .animation(.easeInOut(duration: 0.3), value: spendingAlert != nil)
         }
     }
 

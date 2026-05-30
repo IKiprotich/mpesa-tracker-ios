@@ -55,24 +55,29 @@ struct DashboardView: View {
         @Bindable var router = router
 
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                Group {
-                    if allTransactions.isEmpty {
-                        emptyState
-                    } else {
-                        scrollContent
-                    }
-                }
-
-                if !allTransactions.isEmpty {
-                    ImportFAB { viewModel.showingFilePicker = true }
-                        .padding(.trailing, DesignTokens.Spacing.screenHorizontal)
-                        .padding(.bottom, 96)
+            Group {
+                if allTransactions.isEmpty {
+                    emptyState
+                } else {
+                    scrollContent
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationTitle("Pesa Tracker")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !allTransactions.isEmpty {
+                    ToolbarItem(placement: .principal) {
+                        monthPicker
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            viewModel.showingFilePicker = true
+                        } label: {
+                            Label("Import", systemImage: "square.and.arrow.down")
+                        }
+                        .foregroundStyle(DesignTokens.Color.deepGreen)
+                    }
+                }
+            }
             .fileImporter(
                 isPresented: $viewModel.showingFilePicker,
                 allowedContentTypes: [UTType.pdf],
@@ -110,8 +115,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sectionGap) {
                 DashboardHeroSection(
                     comparison: comparison,
-                    transactionCount: currentTransactions.count,
-                    selectedMonth: $selectedMonth
+                    transactionCount: currentTransactions.count
                 )
 
                 if let alert = spendingAlert {
@@ -131,6 +135,11 @@ struct DashboardView: View {
                 DashboardRecentList(transactions: recentTransactions)
 
                 Color.clear.frame(height: 100)
+
+                ImportFAB { viewModel.showingFilePicker = true }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 16)
             }
             .padding(.top, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -149,6 +158,84 @@ struct DashboardView: View {
                 viewModel.showingFilePicker = true
             }
         )
+    }
+
+    // MARK: - Month picker
+
+    private var monthPicker: some View {
+        Menu {
+            ForEach(availableMonths, id: \.id) { month in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedMonth = month
+                    }
+                } label: {
+                    HStack {
+                        Text(month.displayName)
+                        if month == selectedMonth {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedMonth = selectedMonth.previous()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+
+                Text(selectedMonth.displayName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .monospacedDigit()
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    let next = selectedMonth.next()
+                    let now  = MonthSelection.current()
+                    guard next.year < now.year ||
+                          (next.year == now.year && next.month <= now.month) else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedMonth = next
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
+                            .strokeBorder(Color(.separator).opacity(0.5), lineWidth: 0.5)
+                    )
+            )
+        }
+    }
+
+    private var availableMonths: [MonthSelection] {
+        var months: [MonthSelection] = []
+        var cursor = MonthSelection.current()
+        for _ in 0..<12 {
+            months.append(cursor)
+            cursor = cursor.previous()
+        }
+        return months
     }
 }
 

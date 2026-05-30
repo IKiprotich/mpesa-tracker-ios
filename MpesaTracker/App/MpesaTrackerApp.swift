@@ -14,11 +14,14 @@ import SwiftData
 struct MpesaTrackerApp: App {
 
     @State private var router = AppRouter()
+    @State private var themeManager = ThemeManager.shared
 
     var body: some Scene {
         WindowGroup {
             RootTabView()
                 .environment(router)
+                .environment(themeManager)
+                .preferredColorScheme(themeManager.colorScheme)
                 .onOpenURL(perform: handleIncomingURL)
                 .task {
                     await processStaleInboxItems()

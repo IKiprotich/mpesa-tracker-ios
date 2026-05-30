@@ -37,6 +37,9 @@ struct SettingsView: View {
                     StatementsSection(imports: imports)
                         .padding(.bottom, DesignTokens.Spacing.sectionGap)
 
+                    appearanceSection
+                        .padding(.bottom, DesignTokens.Spacing.sectionGap)
+
                     DataSection(
                         isExporting: isExporting,
                         onExport: exportCSV
@@ -79,6 +82,32 @@ struct SettingsView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+    }
+
+    // MARK: - Appearance
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingsSectionHeader(label: "Appearance")
+
+            SettingsCard {
+                Picker("Appearance", selection: themePreferenceBinding) {
+                    ForEach(ThemePreference.allCases) { preference in
+                        Text(preference.label).tag(preference)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 14)
+            }
+        }
+    }
+
+    private var themePreferenceBinding: Binding<ThemePreference> {
+        Binding(
+            get: { ThemeManager.shared.preference },
+            set: { ThemeManager.shared.preference = $0 }
+        )
     }
 
     // MARK: - Actions

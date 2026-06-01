@@ -21,66 +21,63 @@ struct SettingsView: View {
     private let exportService = CSVExportService()
 
     var body: some View {
-        ZStack {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                Color(.systemGroupedBackground).ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Settings")
-                        .font(.system(size: 34, weight: .bold))
-                        .tracking(-1)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, DesignTokens.Spacing.screenHorizontal)
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        StatementsSection(imports: imports)
+                            .padding(.bottom, DesignTokens.Spacing.sectionGap)
 
-                    StatementsSection(imports: imports)
+                        appearanceSection
+                            .padding(.bottom, DesignTokens.Spacing.sectionGap)
+
+                        DataSection(
+                            isExporting: isExporting,
+                            onExport: exportCSV
+                        )
                         .padding(.bottom, DesignTokens.Spacing.sectionGap)
 
-                    appearanceSection
-                        .padding(.bottom, DesignTokens.Spacing.sectionGap)
+                        AboutSection(version: appVersion)
+                            .padding(.bottom, DesignTokens.Spacing.sectionGap)
 
-                    DataSection(
-                        isExporting: isExporting,
-                        onExport: exportCSV
-                    )
-                    .padding(.bottom, DesignTokens.Spacing.sectionGap)
+                        DangerSection(onClearData: { showClearConfirmation = true })
+                            .padding(.bottom, 24)
 
-                    AboutSection(version: appVersion)
-                        .padding(.bottom, DesignTokens.Spacing.sectionGap)
-
-                    DangerSection(onClearData: { showClearConfirmation = true })
-                        .padding(.bottom, 24)
-
-                    Text("Pesa Tracker")
-                        .font(.system(size: 10.5, design: .monospaced))
-                        .tracking(0.08)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 40)
+                        Text("Pesa Tracker")
+                            .font(.system(size: 10.5, design: .monospaced))
+                            .tracking(0.08)
+                            .textCase(.uppercase)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 40)
+                    }
+                    .padding(.top, 8)
                 }
             }
-        }
-        .confirmationDialog(
-            "Clear All Data",
-            isPresented: $showClearConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Delete All Transactions", role: .destructive, action: clearAllData)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Removes every statement and parsed transaction from this device. Can't be undone.")
-        }
-        .sheet(item: exportURLBinding) { wrapper in
-            ShareSheet(items: [wrapper.url])
-        }
-        .alert(item: $exportError) { error in
-            Alert(
-                title: Text("Export Failed"),
-                message: Text(error.message),
-                dismissButton: .default(Text("OK"))
-            )
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.large)
+            .confirmationDialog(
+                "Clear All Data",
+                isPresented: $showClearConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete All Transactions", role: .destructive, action: clearAllData)
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Removes every statement and parsed transaction from this device. Can't be undone.")
+            }
+            .sheet(item: exportURLBinding) { wrapper in
+                ShareSheet(items: [wrapper.url])
+            }
+            .alert(item: $exportError) { error in
+                Alert(
+                    title: Text("Export Failed"),
+                    message: Text(error.message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
     }
 

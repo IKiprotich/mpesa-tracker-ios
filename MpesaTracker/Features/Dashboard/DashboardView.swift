@@ -55,18 +55,31 @@ struct DashboardView: View {
         @Bindable var router = router
 
         NavigationStack {
-            Group {
-                if allTransactions.isEmpty {
-                    emptyState
-                } else {
-                    scrollContent
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if allTransactions.isEmpty {
+                        emptyState
+                    } else {
+                        scrollContent
+                    }
+                }
+
+                if !allTransactions.isEmpty {
+                    ImportFAB { viewModel.showingFilePicker = true }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 28)
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !allTransactions.isEmpty {
                     ToolbarItem(placement: .principal) {
-                        monthPicker
+                        HStack {
+                            Spacer()
+                            monthPicker
+                            Spacer()
+                        }
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button {
@@ -135,11 +148,6 @@ struct DashboardView: View {
                 DashboardRecentList(transactions: recentTransactions)
 
                 Color.clear.frame(height: 100)
-
-                ImportFAB { viewModel.showingFilePicker = true }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 16)
             }
             .padding(.top, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -163,69 +171,89 @@ struct DashboardView: View {
     // MARK: - Month picker
 
     private var monthPicker: some View {
-        Menu {
-            ForEach(availableMonths, id: \.id) { month in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedMonth = month
-                    }
-                } label: {
-                    HStack {
-                        Text(month.displayName)
-                        if month == selectedMonth {
-                            Image(systemName: "checkmark")
+        HStack(spacing: 8) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedMonth = selectedMonth.previous()
+                }
+                HapticFeedback.light()
+            } label: {
+                Image(systemName: "chevron.backward.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.primary)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .tint(.primary)
+
+            Menu {
+                ForEach(availableMonths, id: \.id) { month in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedMonth = month
+                        }
+                        HapticFeedback.light()
+                    } label: {
+                        HStack {
+                            Text(month.displayName)
+                            if month == selectedMonth {
+                                Image(systemName: "checkmark")
+                            }
                         }
                     }
                 }
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedMonth = selectedMonth.previous()
-                    }
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 13, weight: .semibold))
+            } label: {
+                HStack(spacing: 5) {
+                    Text(selectedMonth.displayName)
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
-                }
-                .buttonStyle(.plain)
+                        .monospacedDigit()
 
-                Text(selectedMonth.displayName)
-                    .font(.system(size: 13, weight: .semibold))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Button {
+                let next = selectedMonth.next()
+                let now  = MonthSelection.current()
+                guard next.year < now.year ||
+                      (next.year == now.year && next.month <= now.month) else { return }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedMonth = next
+                }
+                HapticFeedback.light()
+            } label: {
+                Image(systemName: "chevron.forward.circle.fill")
+                    .font(.system(size: 16))
                     .foregroundStyle(.primary)
-                    .monospacedDigit()
-
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    let next = selectedMonth.next()
-                    let now  = MonthSelection.current()
-                    guard next.year < now.year ||
-                          (next.year == now.year && next.month <= now.month) else { return }
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedMonth = next
-                    }
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.primary)
-                }
-                .buttonStyle(.plain)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
-                            .strokeBorder(Color(.separator).opacity(0.5), lineWidth: 0.5)
-                    )
-            )
+            .buttonStyle(.plain)
+            .tint(.primary)
+            .opacity(canStepForward ? 1 : 0.25)
+            .disabled(!canStepForward)
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: DesignTokens.Radius.chip, style: .continuous)
+                        .strokeBorder(Color(.separator).opacity(0.7), lineWidth: 0.5)
+                )
+        )
+    }
+
+    private var canStepForward: Bool {
+        let next = selectedMonth.next()
+        let now  = MonthSelection.current()
+        return next.year < now.year ||
+               (next.year == now.year && next.month <= now.month)
     }
 
     private var availableMonths: [MonthSelection] {

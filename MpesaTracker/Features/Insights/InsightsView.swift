@@ -42,14 +42,18 @@ struct InsightsView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                Color(.systemGroupedBackground).ignoresSafeArea()
 
-            if allTransactions.isEmpty {
-                emptyState
-            } else {
-                scrollContent
+                if allTransactions.isEmpty {
+                    emptyState
+                } else {
+                    scrollContent
+                }
             }
+            .navigationTitle("Insights")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 

@@ -52,39 +52,43 @@ struct TransactionListView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+        NavigationStack {
+            ZStack(alignment: .top) {
+                Color(.systemGroupedBackground).ignoresSafeArea()
 
-            if allTransactions.isEmpty {
-                emptyState
-            } else {
-                content
+                if allTransactions.isEmpty {
+                    emptyState
+                } else {
+                    content
+                }
             }
-        }
-        .sheet(item: $selectedTransaction) { transaction in
-            TransactionDetailView(transaction: transaction)
-        }
-        .fileImporter(
-            isPresented: $viewModel.showingFilePicker,
-            allowedContentTypes: [UTType.pdf],
-            allowsMultipleSelection: false,
-            onCompletion: { viewModel.handlePickedFile($0, context: modelContext) }
-        )
-        .sheet(isPresented: $viewModel.isParsing) {
-            ImportProgressView(stageLabel: viewModel.stageLabel)
-                .presentationDetents([.height(200)])
-                .presentationDragIndicator(.hidden)
-        }
-        .alert(
-            viewModel.importError?.title ?? "Import Error",
-            isPresented: Binding(
-                get: { viewModel.importError != nil },
-                set: { if !$0 { viewModel.clearError() } }
+            .navigationTitle("Activity")
+            .navigationBarTitleDisplayMode(.large)
+            .sheet(item: $selectedTransaction) { transaction in
+                TransactionDetailView(transaction: transaction)
+            }
+            .fileImporter(
+                isPresented: $viewModel.showingFilePicker,
+                allowedContentTypes: [UTType.pdf],
+                allowsMultipleSelection: false,
+                onCompletion: { viewModel.handlePickedFile($0, context: modelContext) }
             )
-        ) {
-            Button("OK", role: .cancel) { viewModel.clearError() }
-        } message: {
-            Text(viewModel.importError?.message ?? "")
+            .sheet(isPresented: $viewModel.isParsing) {
+                ImportProgressView(stageLabel: viewModel.stageLabel)
+                    .presentationDetents([.height(200)])
+                    .presentationDragIndicator(.hidden)
+            }
+            .alert(
+                viewModel.importError?.title ?? "Import Error",
+                isPresented: Binding(
+                    get: { viewModel.importError != nil },
+                    set: { if !$0 { viewModel.clearError() } }
+                )
+            ) {
+                Button("OK", role: .cancel) { viewModel.clearError() }
+            } message: {
+                Text(viewModel.importError?.message ?? "")
+            }
         }
     }
 
@@ -121,10 +125,6 @@ struct TransactionListView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Activity")
-                    .font(.system(size: 34, weight: .bold))
-                    .tracking(-1)
-
                 Spacer()
 
                 MonthPill(selectedMonth: $selectedMonth)

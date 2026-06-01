@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C8F47912FBB4731000899D5 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 3C8F47902FBB472A000899D5 /* .gitignore */; };
 		3C8F47932FBB474C000899D5 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 3C8F47922FBB4741000899D5 /* README.md */; };
+		3C8F47952FBB43D5000899D5 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C8F47942FBB43D5000899D5 /* MessageUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,6 +25,7 @@
 /* Begin PBXFileReference section */
 		3C8F47902FBB472A000899D5 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		3C8F47922FBB4741000899D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		3C8F47942FBB43D5000899D5 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		3CEC04012FBC370D0058EA84 /* MpesaTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MpesaTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CEC04312FBDE5980058EA84 /* MpesaTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MpesaTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -46,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C8F47952FBB43D5000899D5 /* MessageUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +68,7 @@
 				3C8F47722FBB43D5000899D5 /* MpesaTracker */,
 				3C8F47902FBB472A000899D5 /* .gitignore */,
 				3C8F47922FBB4741000899D5 /* README.md */,
+				3C8F47942FBB43D5000899D5 /* MessageUI.framework */,
 				3CEC04012FBC370D0058EA84 /* MpesaTrackerTests.xctest */,
 				3CEC04022FBC370D0058EA84 /* MpesaTrackerTests */,
 				3CEC04312FBDE5980058EA84 /* MpesaTracker.app */,

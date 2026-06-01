@@ -60,4 +60,5 @@ final class AppRouter {
 
     var selectedTab: Tab = .dashboard
     var pendingImportFilename: String? = nil
+    var selectedMonth: MonthSelection = .current()
 }

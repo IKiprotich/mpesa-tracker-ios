@@ -12,6 +12,7 @@ import SwiftUI
 struct RootTabView: View {
 
     @Environment(AppRouter.self) private var router
+    @AppStorage(OnboardingConstants.hasCompletedOnboardingKey) private var hasCompletedOnboarding = false
 
     var body: some View {
         @Bindable var router = router
@@ -41,5 +42,15 @@ struct RootTabView: View {
                 }
                 .tag(AppRouter.Tab.settings)
         }
+        .fullScreenCover(isPresented: onboardingBinding) {
+            OnboardingView()
+        }
+    }
+
+    private var onboardingBinding: Binding<Bool> {
+        Binding(
+            get: { !hasCompletedOnboarding },
+            set: { show in if !show { hasCompletedOnboarding = true } }
+        )
     }
 }

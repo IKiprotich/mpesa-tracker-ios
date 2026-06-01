@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 struct TransactionListView: View {
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppRouter.self) private var router
 
     @Query(sort: \Transaction.completionTime, order: .reverse)
     private var allTransactions: [Transaction]
@@ -20,10 +21,21 @@ struct TransactionListView: View {
     @State private var searchText = ""
     @State private var activeFilter: TransactionFilter = .all
     @State private var selectedTransaction: Transaction?
-    @State private var selectedMonth: MonthSelection = .current()
+
+    private var availableMonths: [MonthSelection] {
+        let calendar = Calendar.current
+        var seen = Set<MonthSelection>()
+        for tx in allTransactions {
+            let comps = calendar.dateComponents([.year, .month], from: tx.completionTime)
+            if let y = comps.year, let m = comps.month {
+                seen.insert(MonthSelection(year: y, month: m))
+            }
+        }
+        return seen.sorted { ($0.year, $0.month) > ($1.year, $1.month) }
+    }
 
     private var monthTransactions: [Transaction] {
-        AnalyticsService.transactions(allTransactions, in: selectedMonth)
+        AnalyticsService.transactions(allTransactions, in: router.selectedMonth)
     }
 
     private var filteredTransactions: [Transaction] {
@@ -46,8 +58,8 @@ struct TransactionListView: View {
     }
 
     private var monthlySummary: (spent: Double, received: Double) {
-        let spent    = monthTransactions.filter(\.isDebit).reduce(0)  { $0 + abs($1.amount) }
-        let received = monthTransactions.filter(\.isCredit).reduce(0) { $0 + $1.amount }
+        let spent    = filteredTransactions.filter(\.isDebit).reduce(0)  { $0 + abs($1.amount) }
+        let received = filteredTransactions.filter(\.isCredit).reduce(0) { $0 + $1.amount }
         return (spent, received)
     }
 
@@ -77,6 +89,16 @@ struct TransactionListView: View {
                 ImportProgressView(stageLabel: viewModel.stageLabel)
                     .presentationDetents([.height(200)])
                     .presentationDragIndicator(.hidden)
+            }
+            .onAppear {
+                if !availableMonths.contains(router.selectedMonth), let first = availableMonths.first {
+                    router.selectedMonth = first
+                }
+            }
+            .onChange(of: allTransactions) { _, _ in
+                if !availableMonths.contains(router.selectedMonth), let first = availableMonths.first {
+                    router.selectedMonth = first
+                }
             }
             .alert(
                 viewModel.importError?.title ?? "Import Error",
@@ -123,11 +145,12 @@ struct TransactionListView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        @Bindable var router = router
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
                 Spacer()
 
-                MonthPill(selectedMonth: $selectedMonth)
+                MonthPill(selectedMonth: $router.selectedMonth, availableMonths: availableMonths)
             }
 
             HStack(spacing: 4) {
@@ -287,17 +310,32 @@ struct TransactionListView: View {
 
 private struct MonthPill: View {
     @Binding var selectedMonth: MonthSelection
+    let availableMonths: [MonthSelection]
 
     var body: some View {
-        HStack(spacing: 4) {
-            Text(selectedMonth.displayName)
-                .font(.system(size: 13.5, weight: .semibold))
+        Menu {
+            ForEach(availableMonths) { month in
+                Button {
+                    selectedMonth = month
+                } label: {
+                    if month == selectedMonth {
+                        Label(month.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(month.displayName)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(selectedMonth.displayName)
+                    .font(.system(size: 13.5, weight: .semibold))
 
-            Image(systemName: "chevron.down")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .foregroundStyle(.primary)
         }
-        .foregroundStyle(.primary)
     }
 }
 

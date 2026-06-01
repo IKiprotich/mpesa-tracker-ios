@@ -18,16 +18,15 @@ struct DashboardView: View {
     private var allTransactions: [Transaction]
 
     @State private var viewModel = ImportViewModel()
-    @State private var selectedMonth: MonthSelection = .current()
 
     private var currentTransactions: [Transaction] {
-        AnalyticsService.transactions(allTransactions, in: selectedMonth)
+        AnalyticsService.transactions(allTransactions, in: router.selectedMonth)
     }
 
     private var comparison: MonthComparison {
         AnalyticsService.monthComparison(
             current: currentTransactions,
-            previous: AnalyticsService.transactions(allTransactions, in: selectedMonth.previous())
+            previous: AnalyticsService.transactions(allTransactions, in: router.selectedMonth.previous())
         )
     }
 
@@ -174,7 +173,7 @@ struct DashboardView: View {
         HStack(spacing: 8) {
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    selectedMonth = selectedMonth.previous()
+                    router.selectedMonth = router.selectedMonth.previous()
                 }
                 HapticFeedback.light()
             } label: {
@@ -191,13 +190,13 @@ struct DashboardView: View {
                 ForEach(availableMonths, id: \.id) { month in
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedMonth = month
+                            router.selectedMonth = month
                         }
                         HapticFeedback.light()
                     } label: {
                         HStack {
                             Text(month.displayName)
-                            if month == selectedMonth {
+                            if month == router.selectedMonth {
                                 Image(systemName: "checkmark")
                             }
                         }
@@ -205,7 +204,7 @@ struct DashboardView: View {
                 }
             } label: {
                 HStack(spacing: 5) {
-                    Text(selectedMonth.displayName)
+                    Text(router.selectedMonth.displayName)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
                         .monospacedDigit()
@@ -217,12 +216,12 @@ struct DashboardView: View {
             }
 
             Button {
-                let next = selectedMonth.next()
+                let next = router.selectedMonth.next()
                 let now  = MonthSelection.current()
                 guard next.year < now.year ||
                       (next.year == now.year && next.month <= now.month) else { return }
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    selectedMonth = next
+                    router.selectedMonth = next
                 }
                 HapticFeedback.light()
             } label: {
@@ -250,7 +249,7 @@ struct DashboardView: View {
     }
 
     private var canStepForward: Bool {
-        let next = selectedMonth.next()
+        let next = router.selectedMonth.next()
         let now  = MonthSelection.current()
         return next.year < now.year ||
                (next.year == now.year && next.month <= now.month)

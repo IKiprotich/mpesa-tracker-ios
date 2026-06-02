@@ -18,12 +18,12 @@ struct OnboardingScreen4Categories: View {
     )
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            titleSection
-                .padding(.horizontal, OSpacing.xl)
-                .padding(.bottom, OSpacing.md)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                titleSection
+                    .padding(.horizontal, OSpacing.xl)
+                    .padding(.top, OSpacing.lg)
 
-            ScrollView {
                 LazyVGrid(columns: columns, spacing: OSpacing.sm) {
                     ForEach(Category.allCases) { category in
                         CategoryChip(
@@ -34,12 +34,15 @@ struct OnboardingScreen4Categories: View {
                     }
                 }
                 .padding(.horizontal, OSpacing.xl)
-                .padding(.bottom, OSpacing.md)
-            }
+                .padding(.top, OSpacing.lg)
 
-            helperText
-                .padding(.horizontal, OSpacing.xl)
-                .padding(.bottom, OSpacing.sm)
+                helperText
+                    .padding(.horizontal, OSpacing.xl)
+                    .padding(.top, OSpacing.md)
+
+                // Clear the bottom button stack
+                Color.clear.frame(height: 140)
+            }
         }
     }
 
@@ -137,4 +140,26 @@ private struct CategoryChip: View {
                 )
         }
     }
+}
+
+#Preview("Screen 4 Categories — Light") {
+    @Previewable @State var selectedCategories: Set<Category> = []
+    OnboardingScreen4Categories(selectedCategories: $selectedCategories)
+        .preferredColorScheme(.light)
+}
+
+#Preview("Screen 4 Categories — Dark") {
+    @Previewable @State var selectedCategories: Set<Category> = []
+    OnboardingScreen4Categories(selectedCategories: $selectedCategories)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Screen 4 Categories — Nothing selected") {
+    @Previewable @State var selectedCategories: Set<Category> = []
+    OnboardingScreen4Categories(selectedCategories: $selectedCategories)
+}
+
+#Preview("Screen 4 Categories — Some selected") {
+    @Previewable @State var selectedCategories: Set<Category> = [.food, .transport, .utilities]
+    OnboardingScreen4Categories(selectedCategories: $selectedCategories)
 }

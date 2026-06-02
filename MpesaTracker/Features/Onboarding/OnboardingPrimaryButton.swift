@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - Primary CTA button
+
 struct OnboardingPrimaryButton: View {
     let title: String
     let isEnabled: Bool
@@ -15,45 +17,194 @@ struct OnboardingPrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(OFont.cardTitle)
-                .foregroundStyle(isEnabled ? Color.white : Color(.tertiaryLabel))
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: OnboardingConstants.buttonHeight)
-                .background(buttonBackground)
+                .frame(height: 54)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.35))
+                )
         }
-        .buttonStyle(OnboardingScaleStyle())
+        .buttonStyle(ScaleButtonStyle())
         .disabled(!isEnabled)
         .padding(.horizontal, OSpacing.xl)
-        .animation(.easeInOut(duration: OnboardingConstants.enabledFadeDuration), value: isEnabled)
+        .animation(.easeInOut(duration: 0.18), value: isEnabled)
         .accessibilityLabel(title)
     }
+}
 
-    @ViewBuilder
-    private var buttonBackground: some View {
-        if isEnabled {
-            RoundedRectangle(cornerRadius: OnboardingConstants.buttonCornerRadius)
-                .fill(Color.accentColor)
-        } else {
-            RoundedRectangle(cornerRadius: OnboardingConstants.buttonCornerRadius)
-                .fill(Color(.tertiarySystemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: OnboardingConstants.buttonCornerRadius)
-                        .strokeBorder(Color(.separator), lineWidth: 0.5)
+// MARK: - Secondary / ghost link button
+
+struct OnboardingSecondaryLink: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(Color(.secondaryLabel))
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(ScaleButtonStyle(scaleFactor: 0.98))
+        .padding(.horizontal, OSpacing.xl)
+        .accessibilityLabel(title)
+    }
+}
+
+// MARK: - Scale press style
+
+private struct ScaleButtonStyle: ButtonStyle {
+    var scaleFactor: CGFloat = 0.97
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scaleFactor : 1.0)
+            .animation(
+                .spring(response: 0.2, dampingFraction: 0.85),
+                value: configuration.isPressed
+            )
+    }
+}
+
+// MARK: - Bottom button stack
+
+struct OnboardingBottomStack<Secondary: View>: View {
+    let currentPage: Int
+    let totalPages: Int
+    let primaryTitle: String
+    let isPrimaryEnabled: Bool
+    let primaryAction: () -> Void
+    let secondary: () -> Secondary
+
+    init(
+        currentPage: Int,
+        totalPages: Int,
+        primaryTitle: String,
+        isPrimaryEnabled: Bool = true,
+        primaryAction: @escaping () -> Void,
+        @ViewBuilder secondary: @escaping () -> Secondary
+    ) {
+        self.currentPage      = currentPage
+        self.totalPages       = totalPages
+        self.primaryTitle     = primaryTitle
+        self.isPrimaryEnabled = isPrimaryEnabled
+        self.primaryAction    = primaryAction
+        self.secondary        = secondary
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Fade gradient so content scrolls under gracefully
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground).opacity(0),
+                    Color(.systemBackground)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 24)
+
+            VStack(spacing: OSpacing.xs) {
+                // Page indicator
+                OnboardingPageIndicator(
+                    pageCount: totalPages, currentPage: currentPage
                 )
+                .padding(.bottom, OSpacing.sm)
+
+                // Primary CTA
+                OnboardingPrimaryButton(
+                    title: primaryTitle,
+                    isEnabled: isPrimaryEnabled,
+                    action: primaryAction
+                )
+
+                // Optional secondary link
+                secondary()
+            }
+            .padding(.bottom, OSpacing.lg)
+            .background(Color(.systemBackground))
         }
     }
 }
 
-private struct OnboardingScaleStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? OnboardingConstants.pressedScale : 1.0)
-            .animation(
-                .spring(
-                    response: OnboardingConstants.btnSpringResponse,
-                    dampingFraction: OnboardingConstants.btnSpringDamping
-                ),
-                value: configuration.isPressed
-            )
+// MARK: - Previews
+
+#Preview("Button States — Light") {
+    ZStack {
+        Color(.systemBackground).ignoresSafeArea()
+
+        VStack(spacing: 0) {
+            Spacer()
+
+            // Simulated bottom stack
+            VStack(spacing: OSpacing.xs) {
+                OnboardingPageIndicator(pageCount: 5, currentPage: 0)
+                    .padding(.bottom, OSpacing.sm)
+
+                OnboardingPrimaryButton(
+                    title: "Get started",
+                    isEnabled: true,
+                    action: {}
+                )
+
+                OnboardingSecondaryLink(title: "Skip for now", action: {})
+            }
+            .padding(.bottom, OSpacing.xl)
+        }
+    }
+    .preferredColorScheme(.light)
+}
+
+#Preview("Button States — Dark") {
+    ZStack {
+        Color(.systemBackground).ignoresSafeArea()
+
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: OSpacing.xs) {
+                OnboardingPageIndicator(pageCount: 5, currentPage: 2)
+                    .padding(.bottom, OSpacing.sm)
+
+                OnboardingPrimaryButton(
+                    title: "These look right",
+                    isEnabled: false,
+                    action: {}
+                )
+
+                OnboardingSecondaryLink(title: "I'll do this later", action: {})
+            }
+            .padding(.bottom, OSpacing.xl)
+        }
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Button Enabled → Disabled") {
+    ButtonTogglePreview()
+        .preferredColorScheme(.light)
+}
+
+private struct ButtonTogglePreview: View {
+    @State private var enabled = true
+
+    var body: some View {
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
+            VStack(spacing: OSpacing.md) {
+                Spacer()
+                OnboardingPrimaryButton(
+                    title: enabled ? "These look right" : "Select at least one",
+                    isEnabled: enabled,
+                    action: {}
+                )
+                OnboardingSecondaryLink(title: "Toggle state", action: { enabled.toggle() })
+            }
+            .padding(.bottom, OSpacing.xl)
+        }
     }
 }

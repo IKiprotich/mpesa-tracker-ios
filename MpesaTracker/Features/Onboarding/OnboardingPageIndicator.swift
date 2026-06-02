@@ -42,3 +42,23 @@ struct OnboardingPageIndicator: View {
         .accessibilityLabel("Page \(currentPage + 1) of \(pageCount)")
     }
 }
+
+#Preview("Page Indicator") {
+    VStack(spacing: 32) {
+        OnboardingPageIndicator(pageCount: 5, currentPage: 0)
+        OnboardingPageIndicator(pageCount: 5, currentPage: 2)
+        OnboardingPageIndicator(pageCount: 5, currentPage: 4)
+    }
+    .padding(32)
+    .preferredColorScheme(.light)
+}
+
+#Preview("Page Indicator — Dark") {
+    VStack(spacing: 32) {
+        OnboardingPageIndicator(pageCount: 5, currentPage: 0)
+        OnboardingPageIndicator(pageCount: 5, currentPage: 2)
+        OnboardingPageIndicator(pageCount: 5, currentPage: 4)
+    }
+    .padding(32)
+    .preferredColorScheme(.dark)
+}

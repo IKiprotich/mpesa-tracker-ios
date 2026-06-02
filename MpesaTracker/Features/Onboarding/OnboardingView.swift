@@ -37,9 +37,10 @@ struct OnboardingView: View {
                     OnboardingScreen5Import().tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .background(Color(.systemBackground))
             }
         }
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             bottomControls
         }
         .fileImporter(isPresented: $fileImporterPresented, allowedContentTypes: [UTType.pdf]) { result in
@@ -84,8 +85,9 @@ struct OnboardingView: View {
     // MARK: - Bottom controls
 
     private var bottomControls: some View {
-        VStack(spacing: OSpacing.md) {
+        VStack(spacing: OSpacing.xs) {
             OnboardingPageIndicator(pageCount: OnboardingConstants.pageCount, currentPage: currentPage)
+                .padding(.bottom, OSpacing.xs)
 
             OnboardingPrimaryButton(
                 title: ctaTitle,
@@ -95,9 +97,19 @@ struct OnboardingView: View {
 
             secondaryLinkArea
         }
-        .padding(.top, OSpacing.sm)
-        .padding(.bottom, OSpacing.xl)
-        .background(Color(.systemBackground))
+        .padding(.vertical, OSpacing.md)
+        .background(
+            Color(.systemBackground)
+                .overlay(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color(.systemBackground).opacity(0), Color(.systemBackground)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 24)
+                    .offset(y: -24)
+                }
+        )
     }
 
     private var secondaryLinkArea: some View {
@@ -200,4 +212,10 @@ struct OnboardingView: View {
         _ = try? ImportService().importStatement(from: url, into: modelContext)
         complete()
     }
+}
+
+#Preview("Full Onboarding Flow") {
+    OnboardingView()
+        .modelContainer(for: [Transaction.self, StatementImport.self], inMemory: true)
+        .preferredColorScheme(.light)
 }

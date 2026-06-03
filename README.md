@@ -70,7 +70,7 @@ MpesaTracker/
 ## Running locally
 
 ```bash
-git clone https://github.com/iankiprotich/MpesaTracker
+git clone https://github.com/IKiprotich/pesa-tracker-ios.git
 open MpesaTracker.xcodeproj
 ```
 

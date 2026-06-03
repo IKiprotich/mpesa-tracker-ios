@@ -42,7 +42,7 @@ struct OnboardingScreen3Permissions: View {
                     )
 
                 // Clear the bottom button stack
-                Color.clear.frame(height: 140)
+                Color.clear.frame(height: 120)
             }
         }
         .onAppear {
@@ -60,7 +60,7 @@ struct OnboardingScreen3Permissions: View {
 
     private var headlineBlock: some View {
         VStack(alignment: .leading, spacing: OSpacing.sm) {
-            Text("Know before\nyou overspend.")
+            Text("A nudge,\nonce a month.")
                 .font(.system(size: 34, weight: .semibold))
                 .tracking(-0.6)
                 .foregroundStyle(Color(.label))
@@ -69,7 +69,7 @@ struct OnboardingScreen3Permissions: View {
                 .offset(y: contentAppeared ? 0 : 16)
                 .animation(.spring(response: 0.55, dampingFraction: 0.82).delay(0.18), value: contentAppeared)
 
-            Text("Optional nudges keep you aware — without needing to open the app every day.")
+            Text("We can remind you when a new statement is ready to import. That's the only notification we send.")
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(Color(.secondaryLabel))
                 .lineSpacing(3)
@@ -88,8 +88,8 @@ struct OnboardingScreen3Permissions: View {
             benefitRow(
                 icon: "calendar",
                 iconColor: Color(red: 0.31, green: 0.56, blue: 0.71),
-                title: "Monthly summary",
-                body: "A quiet recap of where your money went each month."
+                title: "Monthly import reminder",
+                body: "We ping you when it's time to pull in your latest statement."
             )
 
             Divider()
@@ -98,8 +98,8 @@ struct OnboardingScreen3Permissions: View {
             benefitRow(
                 icon: "arrow.down.doc.fill",
                 iconColor: Color(red: 0.88, green: 0.64, blue: 0.35),
-                title: "Import reminder",
-                body: "A nudge when a new statement is likely ready to import."
+                title: "Nothing else",
+                body: "No marketing. No tips. No \"you haven't opened the app in a while.\""
             )
 
             Divider()
@@ -108,8 +108,8 @@ struct OnboardingScreen3Permissions: View {
             benefitRow(
                 icon: "lock.fill",
                 iconColor: Color.accentColor,
-                title: "Nothing else",
-                body: "No marketing. No promotions. Notifications you actually want."
+                title: "Off by default",
+                body: "You're in control. Turn it on now or any time from Settings."
             )
         }
         .background(

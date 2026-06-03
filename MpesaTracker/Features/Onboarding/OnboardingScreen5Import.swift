@@ -41,7 +41,7 @@ struct OnboardingScreen5Import: View {
                     .padding(.top, OSpacing.md)
 
                 // Clear the bottom button stack
-                Color.clear.frame(height: 140)
+                Color.clear.frame(height: 120)
             }
             .padding(.bottom, OSpacing.xl)
         }
@@ -69,7 +69,7 @@ struct OnboardingScreen5Import: View {
                 .offset(y: contentAppeared ? 0 : 16)
                 .animation(.spring(response: 0.52, dampingFraction: 0.82).delay(0.18), value: contentAppeared)
 
-            Text("Pick the PDF from Files. We read it on-device — nothing leaves your phone.")
+            Text("Select the PDF Safaricom sent you. We process everything on this phone — your data never touches our servers.")
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(Color(.secondaryLabel))
                 .lineSpacing(3)
@@ -87,7 +87,7 @@ struct OnboardingScreen5Import: View {
         VStack(spacing: 0) {
             // Section label
             HStack {
-                Text("HOW TO GET YOUR PDF")
+                Text("GETTING YOUR PDF")
                     .font(OFont.label)
                     .foregroundStyle(Color("GreenDeep"))
                 Spacer()
@@ -129,7 +129,7 @@ struct OnboardingScreen5Import: View {
                 .foregroundStyle(Color.accentColor)
                 .accessibilityHidden(true)
 
-            Text("Processed on-device only. Never uploaded or shared.")
+            Text("Processed on this phone only. Never sent anywhere.")
                 .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(Color(.secondaryLabel))
 
@@ -161,17 +161,17 @@ private struct ImportStep {
         ImportStep(
             number: "1",
             instruction: "Open M-Pesa → Statements",
-            detail: "Tap the M-Pesa icon, then 'M-Pesa Statement'. Choose 'Email Statement'."
+            detail: "Tap the M-Pesa icon. Go to M-Pesa Statement, then choose Email Statement."
         ),
         ImportStep(
             number: "2",
-            instruction: "Pick a date range",
-            detail: "Last 1 month is usually enough. Enter your ID number to confirm."
+            instruction: "Choose a date range",
+            detail: "One month back is enough to start. Safaricom will ask for your ID number to confirm."
         ),
         ImportStep(
             number: "3",
-            instruction: "Save the PDF Safaricom sends you",
-            detail: "Open the email on your iPhone, tap the PDF attachment, then Share → Save to Files."
+            instruction: "Save the PDF to Files",
+            detail: "Open the email on your iPhone. Tap the attachment, then Share → Save to Files."
         )
     ]
 }

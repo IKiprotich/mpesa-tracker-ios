@@ -41,7 +41,7 @@ struct OnboardingScreen4Categories: View {
                     .padding(.top, OSpacing.md)
 
                 // Clear the bottom button stack
-                Color.clear.frame(height: 140)
+                Color.clear.frame(height: 120)
             }
         }
     }
@@ -52,14 +52,14 @@ struct OnboardingScreen4Categories: View {
                 .font(OFont.sectionTitle)
                 .tracking(-0.3)
 
-            Text("We'll prioritise these categories in your dashboard. Pick as many as you like.")
+            Text("Pick the ones that matter to you. We'll put them front and centre.")
                 .font(OFont.body)
                 .foregroundStyle(Color(.secondaryLabel))
         }
     }
 
     private var helperText: some View {
-        Text("Select at least one to continue")
+        Text("Pick at least one to continue")
             .font(OFont.caption)
             .foregroundStyle(Color(.tertiaryLabel))
             .frame(maxWidth: .infinity, alignment: .center)

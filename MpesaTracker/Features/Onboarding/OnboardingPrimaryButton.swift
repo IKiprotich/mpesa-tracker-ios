@@ -17,18 +17,18 @@ struct OnboardingPrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 54)
+                .frame(height: OnboardingConstants.buttonHeight)
                 .background(
-                    RoundedRectangle(cornerRadius: 14)
+                    RoundedRectangle(cornerRadius: OnboardingConstants.buttonCornerRadius)
                         .fill(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.35))
                 )
         }
         .buttonStyle(ScaleButtonStyle())
         .disabled(!isEnabled)
-        .padding(.horizontal, OSpacing.xl)
+        .frame(maxWidth: OnboardingConstants.buttonMaxWidth)
         .animation(.easeInOut(duration: 0.18), value: isEnabled)
         .accessibilityLabel(title)
     }
@@ -43,13 +43,13 @@ struct OnboardingSecondaryLink: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(Color(.secondaryLabel))
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(Color(.tertiaryLabel))
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 44)
         }
-        .buttonStyle(ScaleButtonStyle(scaleFactor: 0.98))
-        .padding(.horizontal, OSpacing.xl)
+        .buttonStyle(ScaleButtonStyle(scaleFactor: 0.99))
+        .frame(maxWidth: OnboardingConstants.buttonMaxWidth)
         .accessibilityLabel(title)
     }
 }
@@ -97,35 +97,33 @@ struct OnboardingBottomStack<Secondary: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Fade gradient so content scrolls under gracefully
             LinearGradient(
                 colors: [
                     Color(.systemBackground).opacity(0),
+                    Color(.systemBackground).opacity(0.95),
                     Color(.systemBackground)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 24)
+            .frame(height: 20)
+            .allowsHitTesting(false)
 
-            VStack(spacing: OSpacing.xs) {
-                // Page indicator
+            VStack(spacing: OnboardingConstants.buttonToSecondaryGap) {
                 OnboardingPageIndicator(
                     pageCount: totalPages, currentPage: currentPage
                 )
-                .padding(.bottom, OSpacing.sm)
+                .padding(.bottom, OnboardingConstants.indicatorToButtonGap - OnboardingConstants.buttonToSecondaryGap)
 
-                // Primary CTA
                 OnboardingPrimaryButton(
                     title: primaryTitle,
                     isEnabled: isPrimaryEnabled,
                     action: primaryAction
                 )
 
-                // Optional secondary link
                 secondary()
             }
-            .padding(.bottom, OSpacing.lg)
+            .padding(.bottom, OSpacing.sm)
             .background(Color(.systemBackground))
         }
     }
@@ -140,10 +138,9 @@ struct OnboardingBottomStack<Secondary: View>: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Simulated bottom stack
-            VStack(spacing: OSpacing.xs) {
+            VStack(spacing: OnboardingConstants.buttonToSecondaryGap) {
                 OnboardingPageIndicator(pageCount: 5, currentPage: 0)
-                    .padding(.bottom, OSpacing.sm)
+                    .padding(.bottom, OnboardingConstants.indicatorToButtonGap - OnboardingConstants.buttonToSecondaryGap)
 
                 OnboardingPrimaryButton(
                     title: "Get started",
@@ -166,9 +163,9 @@ struct OnboardingBottomStack<Secondary: View>: View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: OSpacing.xs) {
+            VStack(spacing: OnboardingConstants.buttonToSecondaryGap) {
                 OnboardingPageIndicator(pageCount: 5, currentPage: 2)
-                    .padding(.bottom, OSpacing.sm)
+                    .padding(.bottom, OnboardingConstants.indicatorToButtonGap - OnboardingConstants.buttonToSecondaryGap)
 
                 OnboardingPrimaryButton(
                     title: "These look right",
@@ -195,7 +192,7 @@ private struct ButtonTogglePreview: View {
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: OSpacing.md) {
+            VStack(spacing: OnboardingConstants.buttonToSecondaryGap) {
                 Spacer()
                 OnboardingPrimaryButton(
                     title: enabled ? "These look right" : "Select at least one",

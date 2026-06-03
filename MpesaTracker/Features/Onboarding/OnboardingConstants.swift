@@ -35,9 +35,13 @@ enum OFont {
 enum OnboardingConstants {
 
     // MARK: Layout
-    static let buttonHeight: CGFloat         = 56
-    static let buttonCornerRadius: CGFloat   = 14
-    static let topBarHeight: CGFloat         = 44
+    static let buttonHeight: CGFloat            = 50
+    static let buttonCornerRadius: CGFloat      = 13
+    static let buttonMaxWidth: CGFloat          = 320
+    static let buttonHorizontalPadding: CGFloat = 24
+    static let indicatorToButtonGap: CGFloat    = 12
+    static let buttonToSecondaryGap: CGFloat    = 8
+    static let topBarHeight: CGFloat            = 44
     static let illustrationWidth: CGFloat    = 280
     static let illustrationHeight: CGFloat   = 160
     static let illustrationCornerRadius: CGFloat = 24

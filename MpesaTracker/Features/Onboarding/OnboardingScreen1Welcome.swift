@@ -58,7 +58,7 @@ struct OnboardingScreen1Welcome: View {
 
     private var headlineBlock: some View {
         VStack(alignment: .leading, spacing: OSpacing.sm) {
-            Text("See exactly where\nyour M-Pesa\nmoney goes.")
+            Text("Your M-Pesa.\nFinally make sense of it.")
                 .font(.system(size: 34, weight: .semibold, design: .default))
                 .tracking(-0.6)
                 .foregroundStyle(Color(.label))
@@ -70,7 +70,7 @@ struct OnboardingScreen1Welcome: View {
                     value: headlineAppeared
                 )
 
-            Text("Import your monthly statement and watch every shilling line up by category — quietly, on your phone.")
+            Text("Paste in your M-Pesa statement. See every transaction sorted, totalled, and charted. Takes about a minute.")
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(Color(.secondaryLabel))
                 .lineSpacing(3)

@@ -21,7 +21,7 @@ struct OnboardingScreen2HowItWorks: View {
                     .font(OFont.label)
                     .foregroundStyle(Color("GreenDeep"))
 
-                Text("Three steps to\nspending clarity")
+                Text("Set up in\nthree steps.")
                     .font(.system(size: 34, weight: .semibold))
                     .tracking(-0.6)
                     .foregroundStyle(Color(.label))
@@ -67,20 +67,20 @@ private struct HowItWorksStep {
     static let all: [HowItWorksStep] = [
         HowItWorksStep(
             number: "01",
-            title: "Export from M-Pesa",
-            body: "Open the M-Pesa app, tap Statements, choose a date range and hit Send. Safaricom emails you the PDF.",
+            title: "Get your statement from M-Pesa",
+            body: "Open M-Pesa, tap Statements, pick a date range, and request the PDF. Safaricom sends it to your email in under a minute.",
             accentColor: Color(red: 0.31, green: 0.56, blue: 0.71) // dusty blue — transport
         ),
         HowItWorksStep(
             number: "02",
-            title: "Save the PDF to Files",
-            body: "Open the email on your iPhone, tap the attachment, then Share → Save to Files. Takes ten seconds.",
+            title: "Save it to your iPhone",
+            body: "Open the email Safaricom sent, tap the PDF, then Share → Save to Files. That's it.",
             accentColor: Color(red: 0.88, green: 0.64, blue: 0.35) // warm sand — food
         ),
         HowItWorksStep(
             number: "03",
-            title: "Import and you're done",
-            body: "Tap Import in Pesa Tracker, pick the PDF, and every transaction appears — categorised and ready.",
+            title: "Import it here",
+            body: "Tap Import, pick the PDF from Files, and every transaction appears — sorted by category, totalled by month.",
             accentColor: Color.accentColor
         )
     ]

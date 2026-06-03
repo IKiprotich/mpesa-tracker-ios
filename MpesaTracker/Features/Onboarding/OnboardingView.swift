@@ -41,7 +41,7 @@ struct OnboardingView: View {
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            bottomControls
+            bottomStack
         }
         .fileImporter(isPresented: $fileImporterPresented, allowedContentTypes: [UTType.pdf]) { result in
             handleImport(result)
@@ -82,44 +82,46 @@ struct OnboardingView: View {
         .padding(.horizontal, OSpacing.xl)
     }
 
-    // MARK: - Bottom controls
+    // MARK: - Bottom stack
 
-    private var bottomControls: some View {
-        VStack(spacing: OSpacing.xs) {
-            OnboardingPageIndicator(pageCount: OnboardingConstants.pageCount, currentPage: currentPage)
-                .padding(.bottom, OSpacing.xs)
-
-            OnboardingPrimaryButton(
-                title: ctaTitle,
-                isEnabled: ctaEnabled,
-                action: handleCTA
+    private var bottomStack: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground).opacity(0),
+                    Color(.systemBackground).opacity(0.95),
+                    Color(.systemBackground)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
             )
+            .frame(height: 20)
+            .allowsHitTesting(false)
 
-            secondaryLinkArea
-        }
-        .padding(.vertical, OSpacing.md)
-        .background(
-            Color(.systemBackground)
-                .overlay(alignment: .top) {
-                    LinearGradient(
-                        colors: [Color(.systemBackground).opacity(0), Color(.systemBackground)],
-                        startPoint: .top,
-                        endPoint: .bottom
+            VStack(spacing: OnboardingConstants.buttonToSecondaryGap) {
+                OnboardingPageIndicator(pageCount: OnboardingConstants.pageCount, currentPage: currentPage)
+                    .padding(.bottom, OnboardingConstants.indicatorToButtonGap - OnboardingConstants.buttonToSecondaryGap)
+
+                OnboardingPrimaryButton(
+                    title: ctaTitle,
+                    isEnabled: ctaEnabled,
+                    action: handleCTA
+                )
+
+                if showsSecondaryLink {
+                    OnboardingSecondaryLink(
+                        title: secondaryTitle ?? "",
+                        action: handleSecondary
                     )
-                    .frame(height: 24)
-                    .offset(y: -24)
                 }
-        )
+            }
+            .padding(.bottom, OSpacing.sm)
+            .background(Color(.systemBackground))
+        }
     }
 
-    private var secondaryLinkArea: some View {
-        Button(secondaryTitle ?? " ") { handleSecondary() }
-            .font(OFont.body)
-            .foregroundStyle(Color(.secondaryLabel))
-            .frame(minHeight: 44)
-            .opacity(secondaryTitle == nil ? 0 : 1)
-            .disabled(secondaryTitle == nil)
-            .accessibilityHidden(secondaryTitle == nil)
+    private var showsSecondaryLink: Bool {
+        secondaryTitle != nil
     }
 
     // MARK: - Computed state
@@ -127,9 +129,9 @@ struct OnboardingView: View {
     private var ctaTitle: String {
         switch currentPage {
         case 0: return "Get started"
-        case 1: return "See how it works"
-        case 2: return "Enable notifications"
-        case 3: return "These look right"
+        case 1: return "Got it"
+        case 2: return "Turn on reminders"
+        case 3: return "Done"
         case 4: return "Import my statement"
         default: return "Continue"
         }
@@ -141,8 +143,8 @@ struct OnboardingView: View {
 
     private var secondaryTitle: String? {
         switch currentPage {
-        case 2: return "Not now"
-        case 4: return "I'll do this later"
+        case 2: return "Skip for now"
+        case 4: return "Set up later"
         default: return nil
         }
     }

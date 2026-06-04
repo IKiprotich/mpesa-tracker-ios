@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TransactionDetailView: View {
 
@@ -15,6 +16,7 @@ struct TransactionDetailView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var showingCategoryPicker = false
+    @State private var showingEdit = false
 
     var body: some View {
         NavigationStack {
@@ -36,6 +38,11 @@ struct TransactionDetailView: View {
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Edit") { showingEdit = true }
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Color.deepGreen)
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                         .font(.system(size: 14, weight: .semibold))
@@ -49,6 +56,12 @@ struct TransactionDetailView: View {
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showingCategoryPicker) {
             CategoryPickerSheet(transaction: transaction)
+        }
+        .sheet(isPresented: $showingEdit, onDismiss: {
+            // The transaction may have been deleted from the edit sheet.
+            if transaction.modelContext == nil { dismiss() }
+        }) {
+            TransactionEditView(mode: .edit(transaction))
         }
     }
 

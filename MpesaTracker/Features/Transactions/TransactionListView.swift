@@ -21,6 +21,7 @@ struct TransactionListView: View {
     @State private var searchText = ""
     @State private var activeFilter: TransactionFilter = .all
     @State private var selectedTransaction: Transaction?
+    @State private var showingAddTransaction = false
 
     private var availableMonths: [MonthSelection] {
         let calendar = Calendar.current
@@ -76,8 +77,22 @@ struct TransactionListView: View {
             }
             .navigationTitle("Activity")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        HapticFeedback.light()
+                        showingAddTransaction = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add transaction")
+                }
+            }
             .sheet(item: $selectedTransaction) { transaction in
                 TransactionDetailView(transaction: transaction)
+            }
+            .sheet(isPresented: $showingAddTransaction) {
+                TransactionEditView(mode: .add)
             }
             .fileImporter(
                 isPresented: $viewModel.showingFilePicker,

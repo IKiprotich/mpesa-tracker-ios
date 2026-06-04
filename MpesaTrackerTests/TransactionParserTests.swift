@@ -517,7 +517,7 @@ final class TransactionTypeDetectionTests: XCTestCase {
     }
 
     func test_detect_unitTrust() {
-        XCTAssertEqual(detect("Unit Trust Withdraw From 4145555 - ZIIDI MMF by M-PESA UnitTrust"), .unitTrust)
+        XCTAssertEqual(detect("Unit Trust Withdraw From 4145555 - ZIIDI MMF by M-PESA UnitTrust"), .unitTrustWithdraw)
     }
 
     func test_detect_cardPayment_globalpay() {

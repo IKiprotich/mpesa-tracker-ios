@@ -18,10 +18,6 @@ struct TransactionParser {
         pattern: #"^(Completed|Failed)\s+([-\d,]+\.\d{2})\s+([\d,]+\.\d{2})"#
     )
 
-    private static let receiptPrefixRegex = try! NSRegularExpression(
-        pattern: #"^[A-Z0-9]{8,12}\s"#
-    )
-
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -123,9 +119,14 @@ struct TransactionParser {
     }
 
     private func isReceiptLine(_ line: String) -> Bool {
+        // A genuine receipt line begins with the receipt ID *and* a date/time.
+        // Requiring the full header pattern (not just the ID prefix) prevents
+        // continuation lines that happen to start with an all-caps word — e.g.
+        // "NYANGATE MAGETO" or a reference like "P3E3367B5B Stockholm" — from
+        // being mistaken for the start of a new transaction.
         let t = line.trimmingCharacters(in: .whitespaces)
         let range = NSRange(t.startIndex..., in: t)
-        return Self.receiptPrefixRegex.firstMatch(in: t, range: range) != nil
+        return Self.headerRegex.firstMatch(in: t, range: range) != nil
     }
 
     private func isStatusLine(_ line: String) -> Bool {

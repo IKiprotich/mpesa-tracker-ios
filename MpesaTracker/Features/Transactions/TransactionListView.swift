@@ -283,6 +283,10 @@ struct TransactionListView: View {
             subtitle: "Import your M-Pesa statement to see all your transactions here.",
             action: .init(label: "Import Statement") {
                 viewModel.showingFilePicker = true
+            },
+            secondaryAction: .init(label: "Load sample data") {
+                HapticFeedback.light()
+                try? SampleDataService.loadSampleData(into: modelContext)
             }
         )
     }

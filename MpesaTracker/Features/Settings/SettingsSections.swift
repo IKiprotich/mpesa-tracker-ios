@@ -40,6 +40,55 @@ struct DataSection: View {
     }
 }
 
+// MARK: - DemoDataSection
+
+struct DemoDataSection: View {
+
+    let hasSampleData: Bool
+    let onLoad: () -> Void
+    let onRemove: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingsSectionHeader(label: "Demo data")
+
+            SettingsCard {
+                Button(action: onLoad) {
+                    SettingsNavRow(
+                        icon: "wand.and.stars",
+                        iconTone: .green,
+                        label: "Load sample data"
+                    )
+                }
+                .disabled(hasSampleData)
+                .buttonStyle(.plain)
+
+                if hasSampleData {
+                    Divider().padding(.leading, 60)
+
+                    Button(action: onRemove) {
+                        SettingsNavRow(
+                            icon: "trash",
+                            iconTone: .neutral,
+                            label: "Remove sample data"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Text(hasSampleData
+                 ? "Sample data is loaded. Remove it to clear the demo transactions without touching anything you imported."
+                 : "Load a realistic set of demo transactions to explore the app without importing a statement.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .lineSpacing(2)
+                .padding(.horizontal, DesignTokens.Spacing.screenHorizontal)
+                .padding(.top, 10)
+        }
+    }
+}
+
 // MARK: - AboutSection
 
 struct AboutSection: View {

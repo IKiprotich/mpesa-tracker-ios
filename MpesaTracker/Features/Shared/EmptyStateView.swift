@@ -28,6 +28,7 @@ struct EmptyStateView: View {
     let title: String
     let subtitle: String
     var action: Action? = nil
+    var secondaryAction: Action? = nil
 
     // MARK: - Body
 
@@ -63,6 +64,16 @@ struct EmptyStateView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 8)
+            }
+
+            if let secondaryAction {
+                Button(action: secondaryAction.handler) {
+                    Text(secondaryAction.label)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
             }
 
             Spacer()

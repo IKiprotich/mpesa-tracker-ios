@@ -12,6 +12,7 @@ struct SettingsView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StatementImport.importedAt, order: .reverse) private var imports: [StatementImport]
+    @Query private var allTransactions: [Transaction]
 
     @State private var showClearConfirmation = false
     @State private var exportURL: URL?
@@ -36,6 +37,13 @@ struct SettingsView: View {
                         DataSection(
                             isExporting: isExporting,
                             onExport: exportCSV
+                        )
+                        .padding(.bottom, DesignTokens.Spacing.sectionGap)
+
+                        DemoDataSection(
+                            hasSampleData: hasSampleData,
+                            onLoad: loadSampleData,
+                            onRemove: removeSampleData
                         )
                         .padding(.bottom, DesignTokens.Spacing.sectionGap)
 
@@ -105,6 +113,30 @@ struct SettingsView: View {
             get: { ThemeManager.shared.preference },
             set: { ThemeManager.shared.preference = $0 }
         )
+    }
+
+    // MARK: - Demo data
+
+    private var hasSampleData: Bool {
+        allTransactions.contains { $0.uniqueKey.hasPrefix(SampleDataService.keyPrefix) }
+    }
+
+    private func loadSampleData() {
+        HapticFeedback.light()
+        do {
+            try SampleDataService.loadSampleData(into: modelContext)
+        } catch {
+            exportError = SettingsError(message: "Could not load sample data. Please try again.")
+        }
+    }
+
+    private func removeSampleData() {
+        HapticFeedback.light()
+        do {
+            try SampleDataService.removeSampleData(from: modelContext)
+        } catch {
+            exportError = SettingsError(message: "Could not remove sample data. Please try again.")
+        }
     }
 
     // MARK: - Actions

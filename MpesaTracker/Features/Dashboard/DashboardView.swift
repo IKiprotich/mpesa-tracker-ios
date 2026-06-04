@@ -163,6 +163,10 @@ struct DashboardView: View {
             subtitle: "Import your M-Pesa statement to see where your money goes — automatically categorised with zero manual entry.",
             action: .init(label: "Import Statement") {
                 viewModel.showingFilePicker = true
+            },
+            secondaryAction: .init(label: "Load sample data") {
+                HapticFeedback.light()
+                try? SampleDataService.loadSampleData(into: modelContext)
             }
         )
     }
